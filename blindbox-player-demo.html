@@ -428,6 +428,14 @@
   const CHAIN_ID=97, CHAIN_HEX='0x61', GAME='0xc97Ee1bD6f2f435eA36F2d38990b9bd922544057', BAI='0x4756C3E15b5DcA9032426E3C93aaA92311ebC339', USDT='0x337610d27c682e347c9cd60bd4b3b107c9d34ddd', ROUTER='0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3';
   const ZERO='0x0000000000000000000000000000000000000000';
   let web3Provider=null, chainData={usdt:0,bnb:0,bai:0,sold:0,bought:0,boxes:[],cards:[],round:[]};
+  const BINANCE_RDNS='com.binance.wallet', BINANCE_DEPLOYED_AT=1794231246, BINANCE_LOG_CHUNK=2000, announcedProviders=[];
+  window.addEventListener('eip6963:announceProvider',event=>{const detail=event.detail;if(detail?.provider&&detail?.info?.rdns===BINANCE_RDNS)announcedProviders.push(detail.provider);});
+  async function findBinanceProvider(){
+    window.dispatchEvent(new Event('eip6963:requestProvider'));
+    await new Promise(resolve=>setTimeout(resolve,120));
+    const candidates=[window.binancew3w?.ethereum,window.BinanceChain,...announcedProviders,window.ethereum?.isBinanceWallet||window.ethereum?.isBinance||window.ethereum?.isBinanceChainWallet?window.ethereum:null].filter(Boolean);
+    return candidates.find(provider=>typeof provider.request==='function')||null;
+  }
   const pad32=v=>BigInt(v).toString(16).padStart(64,'0');
   const addrWord=a=>String(a).toLowerCase().replace(/^0x/,'').padStart(64,'0');
   const asBig=(data,index=0)=>BigInt('0x'+(data||'0x').slice(2+index*64,2+(index+1)*64).padStart(64,'0'));
@@ -439,8 +447,8 @@
   const faceAt=i=>i===52?'大王':i===53?'小王':allFaces[i]||'未知';
   async function switchToBscTestnet(){let id=await rpc('eth_chainId');if(Number(BigInt(id))===CHAIN_ID)return;try{await rpc('wallet_switchEthereumChain',[{chainId:CHAIN_HEX}]);}catch(e){if(e.code!==4902)throw e;await rpc('wallet_addEthereumChain',[{chainId:CHAIN_HEX,chainName:'BNB Smart Chain Testnet',nativeCurrency:{name:'tBNB',symbol:'tBNB',decimals:18},rpcUrls:['https://data-seed-prebsc-1-s1.binance.org:8545/'],blockExplorerUrls:['https://testnet.bscscan.com']}]);}id=await rpc('eth_chainId');if(Number(BigInt(id))!==CHAIN_ID)throw Error('Please switch Binance Wallet to BSC Testnet (Chain ID 97).');}
   async function connectBinanceWeb3(){
-    const provider=window.ethereum;
-    if(!provider){$('authModal').classList.add('open');$('authError').textContent=language==='en'?'Open this page in the Binance App Web3 DApp browser, then connect Binance Wallet.':'请在币安 App 的 Web3 DApp 浏览器中打开本页，再连接 Binance Wallet。';return;}
+    const provider=await findBinanceProvider();
+    if(!provider){$('authModal').classList.add('open');$('authError').textContent=language==='en'?'Binance Wallet is required. Open this page in the Binance Wallet DApp browser or enable the official Binance Wallet extension. Other wallets are not supported.':'仅支持币安钱包。请在币安钱包 DApp 浏览器中打开本页，或启用官方币安钱包扩展；不支持其他钱包。';return;}
     try{web3Provider=provider;const accounts=await rpc('eth_requestAccounts');if(!accounts?.length)throw Error('Wallet did not return an account.');await switchToBscTestnet();const deployed=await Promise.all([GAME,BAI,USDT].map(address=>rpc('eth_getCode',[address,'latest'])));if(deployed.some(code=>!code||code==='0x'))throw Error('A required BSC testnet contract was not found. Check the selected network and deployment addresses.');setWalletConnected(accounts[0]);provider.on?.('accountsChanged',a=>{if(a?.length){setWalletConnected(a[0]);refreshChainData().catch(()=>{});}else{setWalletConnected('');}});provider.on?.('chainChanged',async()=>{try{await switchToBscTestnet();refreshChainData();}catch(e){setWalletConnected('');showAction('请在钱包切换到 BSC 测试网（Chain ID 97）。','Switch your wallet to BSC Testnet (Chain ID 97).',true);}});await refreshChainData();}
     catch(e){web3Provider=null;setWalletConnected('');const msg=e.code===4001?'Wallet connection was rejected.':e.message||'Wallet connection failed.';showAction(msg,msg,true);}
   }
@@ -450,8 +458,12 @@
       uintCall(USDT,'0x70a08231',addrWord(address)),rpc('eth_getBalance',[address,'latest']).then(x=>BigInt(x)),uintCall(BAI,'0x70a08231',addrWord(address)),uintCall(GAME,'0xa6482858'),call(GAME,'0xbc3ac875'+pad32(chinaDayId())),uintCall(GAME,'0xceac109c',pad32(chinaDayId())+addrWord(address))
     ]);
     chainData.usdt=Number(u)/1e18;chainData.bnb=Number(b)/1e18;chainData.bai=Number(ba)/1e18;chainData.price=price;chainData.bought=Number(bought);chainData.round=Array.from({length:14},(_,i)=>asBig(round,i));chainData.sold=Number(chainData.round[1]);chainData.totalUSDT=Number(chainData.round[3])/1e18;chainData.winningFaces=chainData.round[9]?Array.from({length:54},(_,i)=>((chainData.round[5]>>BigInt(i))&1n)?faceAt(i):'').filter(Boolean):[];
-    const boxes=[],cards=[],latest=await rpc('eth_blockNumber');
-    let logs=[];try{logs=await rpc('eth_getLogs',[{fromBlock:'0x0',toBlock:latest,address:GAME,topics:['0x18a5d4cfaf86b3e95d75b28559baafe540d86ee1ad6c5fffb46b39991bf82cb1',null,'0x'+addrWord(address)]}]);}catch(e){showAction('暂时无法读取盲盒 NFT 记录，请稍后刷新。','Could not load box NFT history. Please refresh shortly.',true);}
+    const boxes=[],cards=[],latest=BigInt(await rpc('eth_blockNumber'));
+    let logs=[];try{
+      const cacheKey='bai54-game-deployment-block-97';let firstBlock=localStorage.getItem(cacheKey);
+      if(firstBlock===null){let low=0n,high=latest;while(low<high){const mid=(low+high)>>1n;const block=await rpc('eth_getBlockByNumber',['0x'+mid.toString(16),false]);if(block&&Number(BigInt(block.timestamp))>=BINANCE_DEPLOYED_AT)high=mid;else low=mid+1n;}firstBlock=low.toString();localStorage.setItem(cacheKey,firstBlock);}
+      const from=BigInt(firstBlock);for(let start=from;start<=latest;start+=BigInt(BINANCE_LOG_CHUNK)){const end=start+BigInt(BINANCE_LOG_CHUNK)-1n>latest?latest:start+BigInt(BINANCE_LOG_CHUNK)-1n;const batch=await rpc('eth_getLogs',[{fromBlock:'0x'+start.toString(16),toBlock:'0x'+end.toString(16),address:GAME,topics:['0x18a5d4cfaf86b3e95d75b28559baafe540d86ee1ad6c5fffb46b39991bf82cb1',null,'0x'+addrWord(address)]}]);logs.push(...batch);}
+    }catch(e){showAction('暂时无法读取盲盒 NFT 记录，请稍后刷新。','Could not load box NFT history. Please refresh shortly.',true);}
     const tokenIds=[];for(const log of logs){const first=asBig(log.data,0),count=Number(asBig(log.data,1));for(let i=0;i<count;i++)tokenIds.push(first+BigInt(i));}
     for(const tokenId of tokenIds){try{const owner='0x'+(await call(GAME,'0x6352211e'+pad32(tokenId))).slice(-40);if(owner.toLowerCase()!==address.toLowerCase())continue;const [dayValue,faceValue]=await Promise.all([uintCall(GAME,'0xd35074c0',pad32(tokenId)),uintCall(GAME,'0xc0d6992b',pad32(tokenId))]);const day=Number(dayValue),face=Number(faceValue),box={id:Number(tokenId),owner:state.active,day,opened:face!==255,face:face===255?'':faceAt(face),result:''};if(face!==255){const win=(await call(GAME,'0xfcfbbb9a'+pad32(tokenId))).endsWith('1');box.result=win?'中奖':'未中奖';cards.push({id:Number(tokenId),owner:state.active,face:box.face,rank:cardRank(box.face),rarity:'R',status:'owned',day,result:box.result,onchain:true});}boxes.push(box);}catch{}}
     chainData.boxes=boxes.sort((a,b)=>b.id-a.id);chainData.cards=cards.sort((a,b)=>b.id-a.id);render();
