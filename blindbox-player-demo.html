@@ -324,6 +324,37 @@
 }
 @media(max-width:430px){.collection-panel>.grid{grid-template-columns:minmax(0,1fr)!important}.arena-metrics{gap:3px!important}.arena-metrics small{font-size:6px!important}.wallet-state{max-width:125px}}
 </style>
+<style id="dapp-layout-refresh">
+/* Responsive Dapp shell: route-first navigation, readable content, natural document scrolling. */
+html,body{height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important}
+body{min-height:100dvh!important;overflow:visible!important}
+main{height:auto!important;min-height:100dvh!important;display:flex!important;flex-direction:column!important;overflow:visible!important;padding-bottom:calc(76px + env(safe-area-inset-bottom))!important}
+.sitebar{position:sticky!important;top:0!important;z-index:30!important;backdrop-filter:blur(18px);background:color-mix(in srgb,#0b0e12 88%,transparent)}
+main>.grid{display:grid!important;flex:none!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;align-content:start!important;grid-auto-rows:auto!important;grid-template-rows:none!important;padding-bottom:20px}
+main>.grid>[data-page]{align-self:start!important;min-height:0!important;max-height:none!important}
+[data-page].page-hidden{display:none!important}
+body[data-view="table"] main>.grid{grid-template-columns:minmax(0,1fr) minmax(0,1.08fr)!important;gap:16px!important}
+body[data-view="collection"] main>.grid,body[data-view="forge"] main>.grid,body[data-view="market"] main>.grid{grid-template-columns:minmax(0,1fr)!important;gap:16px!important}
+body[data-view="table"] .arena-screen{height:clamp(420px,58vh,620px)!important;min-height:420px!important}
+body[data-view="table"] .player-panel,body[data-view="table"] .buy-panel{height:auto!important;max-height:none!important;overflow:visible!important}
+body[data-view="collection"] .collection-panel,body[data-view="forge"] .forge-panel,body[data-view="market"] .market-panel{height:auto!important;max-height:none!important;overflow:visible!important}
+body[data-view="collection"] .collection-panel>.grid{height:auto!important;max-height:none!important;overflow:visible!important;grid-template-rows:none!important;grid-auto-rows:auto!important;align-content:start!important}
+body[data-view="collection"] .collection-panel>.grid>.bag-panel{height:auto!important;max-height:none!important;min-height:180px!important;overflow:visible!important}
+.cards{max-height:none!important;overflow:visible!important}
+@media(max-width:900px){
+ main{padding-left:18px!important;padding-right:18px!important}
+ body[data-view="table"] main>.grid{grid-template-columns:minmax(0,1fr)!important}
+ body[data-view="table"] .arena-screen{height:auto!important;min-height:0!important}
+}
+@media(max-width:760px){
+ main{padding:0 13px calc(90px + env(safe-area-inset-bottom))!important}
+ .sitebar{position:sticky!important;top:0!important}
+ .mobile-nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;z-index:60!important;padding-bottom:env(safe-area-inset-bottom)!important}
+ main>.grid{padding-bottom:16px!important}
+ .cards{grid-template-columns:repeat(auto-fill,minmax(104px,1fr))!important}
+}
+</style>
+
 </head>
 <body>
 <div class="auth-modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
