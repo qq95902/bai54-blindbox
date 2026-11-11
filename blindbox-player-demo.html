@@ -380,6 +380,14 @@ button,.hero-cta{transition:transform .2s,filter .2s,box-shadow .25s!important}.
 @media(prefers-reduced-motion:reduce){.free-ticket,.free-ticket:before,.free-page-kicker i{animation:none!important}}
 </style>
 
+<style id="q-card-showcase-style">
+.table-stage .q-card-showcase{position:relative;z-index:4;display:block;width:min(96%,440px);height:auto;max-height:96%;object-fit:contain;border-radius:14px;filter:drop-shadow(0 10px 28px #0009) drop-shadow(0 0 18px #d7ff4f30);animation:qCardFloat 6s ease-in-out infinite;transition:filter .3s,transform .3s}
+.table-stage .q-card-showcase:hover{transform:translateY(-4px) scale(1.015);filter:drop-shadow(0 14px 36px #000b) drop-shadow(0 0 25px #d7ff4f55)}
+.table-stage .deck-canvas,.table-stage .jester-mask,.table-stage .table-core{display:none!important}
+@keyframes qCardFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@media(max-width:760px){.table-stage .q-card-showcase{width:auto;height:100%;max-width:96%;max-height:100%}}
+@media(prefers-reduced-motion:reduce){.table-stage .q-card-showcase{animation:none}}
+</style>
 </head>
 <body>
 <div class="auth-modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
@@ -401,6 +409,7 @@ button,.hero-cta{transition:transform .2s,filter .2s,box-shadow .25s!important}.
     <div class="table-stage" aria-label="动态扑克牌牌桌">
       <div class="table-ring ring-one"></div><div class="table-ring ring-two"></div><div class="table-scan"></div>
       <canvas class="deck-canvas" id="deckCanvas" aria-label="54 张动态扑克牌及当日中奖牌面"></canvas>
+      <img class="q-card-showcase" src="assets/bai-chibi-card-preview.png" alt="Bai盲盒 Q 版卡面预览：BTC、ETH、BNB、芯片工程师、机器人与 AI 角色，完整系列共 54 种">
       <div class="jester-mask mask-left" aria-hidden="true"><i></i><b>✦</b><em></em></div><div class="jester-mask mask-right" aria-hidden="true"><i></i><b>✧</b><em></em></div>
       <div class="table-core"><span class="core-mark">⬡</span><b id="deckCount">54</b><small>BAI DECK ONLINE</small></div>
       <span class="stage-star star-a">✦</span><span class="stage-star star-b">✧</span><span class="stage-coordinate" id="stageStatus">54 CARDS // SHUFFLING</span>
