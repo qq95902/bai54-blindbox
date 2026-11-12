@@ -260,10 +260,21 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
 
     /// @notice Pay 10 USDT per box and receive the unopened box NFT atomically.
     function buyBoxes(uint8 amount, address referrer) external nonReentrant {
+        _buyBoxesWithUSDT(msg.sender, amount, referrer);
+    }
+
+    /// @notice Pay exactly one box price in USDT and mint one unopened box NFT atomically.
+    /// @dev This is a contract call, not a plain ERC-20 transfer. The buyer must first
+    ///      approve this contract to spend at least `boxPrice` USDT.
+    function buyOneBox(address referrer) external nonReentrant {
+        _buyBoxesWithUSDT(msg.sender, 1, referrer);
+    }
+
+    function _buyBoxesWithUSDT(address buyer, uint8 amount, address referrer) private {
         uint256 totalCost = boxPrice * amount;
         _checkPurchase(amount);
-        usdt.safeTransferFrom(msg.sender, address(this), totalCost);
-        _recordPurchase(msg.sender, amount, referrer, totalCost);
+        usdt.safeTransferFrom(buyer, address(this), totalCost);
+        _recordPurchase(buyer, amount, referrer, totalCost);
     }
 
     /// @notice Pay with native BNB; the router atomically swaps only the exact USDT cost.
