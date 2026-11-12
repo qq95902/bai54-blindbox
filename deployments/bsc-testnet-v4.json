@@ -1,0 +1,53 @@
+{
+  "network": "BNB Smart Chain Testnet",
+  "chainId": 97,
+  "version": 4,
+  "deployer": "0xf94199e3C635b61253Aadb235183F684df49A810",
+  "contracts": {
+    "baiToken": "0xA41b85e5D05272fC98B73de4cdB7b3BF5d40F31f",
+    "game": "0x3699e7eB729A6d02F04E5D0534309E7C6dd984F5",
+    "freeDrop": "0x3B53C67F637c81d6197b18E39CC9c3a1fEf9A921",
+    "liquidityManager": "0x4F6EC8167Fce243a6790e3525E98AAC672b43f3D"
+  },
+  "external": {
+    "usdt": "0x337610d27c682e347c9cd60bd4b3b107c9d34ddd",
+    "router": "0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3",
+    "factory": "0xB7926C0430Afb07AA7DEfDE6DA862aE0Bde767bc",
+    "pair": "0x293D38ef6eA0dc0F7D60b0c0Ca67588A8ab570FA",
+    "vrfCoordinator": "0xDA3b641D438362C440Ac5458c57e00a712b66700",
+    "vrfSubscriptionId": "62224439238952900277820817768287453736344994384904839943325233531854589005264",
+    "wrappedNative": "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd"
+  },
+  "allocations": {
+    "totalSupply": "2000000.0",
+    "initialLiquidity": "400000.0",
+    "gameRewards": "985000.0",
+    "freeDrop": "615000.0",
+    "freeDropReserve": "615000.0"
+  },
+  "freeDropRules": {
+    "totalClaims": 200000,
+    "dailyClaims": 3000,
+    "standardClaims": 195000,
+    "specialClaims": 5000,
+    "oneClaimPerBeijingDayPerWallet": true,
+    "paidBoxRequiredToWithdrawReward": true
+  },
+  "initialLiquidity": {
+    "usdtRequested": "1.0",
+    "baiRequested": "40000.0",
+    "lpReceiptLocked": "197989898732233305832",
+    "lockDurationDays": 365
+  },
+  "transactions": {
+    "donatePoolFloorUSDT": "0x22fedef1fbecb714a6496ab8b5b4e41d766ff465becaa1de6d9ea164b0b28ee3",
+    "donatePoolFloorBAI": "0x4fba2049978c8a9fd6251c7450ceb39a584ffab46cbe14e849e1c0463b398461",
+    "syncPoolFloor": "0x20e05247047d5828f5f1c5e54b8e2c7abd7a9832a89045e7c201d028591a0205"
+  },
+  "testnetSettings": {
+    "twapSeconds": 15,
+    "observationIntervalSeconds": 5,
+    "minimumPoolValueUsd": 2
+  },
+  "deployedAt": "2026-11-12T13:37:58.110Z"
+}
