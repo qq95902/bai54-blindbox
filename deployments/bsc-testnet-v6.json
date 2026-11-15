@@ -1,0 +1,55 @@
+{
+  "network": "BNB Smart Chain Testnet",
+  "chainId": 97,
+  "version": 6,
+  "deployer": "0xf94199e3C635b61253Aadb235183F684df49A810",
+  "external": {
+    "usdt": "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd",
+    "router": "0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3",
+    "factory": "0xB7926C0430Afb07AA7DEfDE6DA862aE0Bde767bc",
+    "vrfCoordinator": "0xDA3b641D438362C440Ac5458c57e00a712b66700",
+    "vrfSubscriptionId": "62224439238952900277820817768287453736344994384904839943325233531854589005264",
+    "wrappedNative": "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd",
+    "pair": "0x9DCAA853dbef71a902c82117A7d5bf1923273a3D"
+  },
+  "initialLiquidity": {
+    "usdt": "2.0",
+    "bai": "80000.0",
+    "lpSharesLocked": "395979797464466612664"
+  },
+  "vrf": {
+    "subscriptionOwner": "0xf94199e3C635b61253Aadb235183F684df49A810",
+    "nativeBalanceWei": "200000000000000000",
+    "existingConsumers": 6
+  },
+  "testnetSettings": {
+    "observationIntervalSeconds": 5,
+    "twapSeconds": 15,
+    "maximumObservationAgeSeconds": 300,
+    "minimumPoolValueUSDT": 2
+  },
+  "rules": {
+    "directReferralUSDT": "3 USDT per referred 10 USDT box (30%), one level only",
+    "lpAllocation": "78% sales less same-round referral commissions",
+    "legacyMultiLevelReferral": false
+  },
+  "startedAt": "2026-11-15T17:26:09.940Z",
+  "contracts": {
+    "game": "0x30d0017c25361c666DbA957821618D25757599Fd",
+    "freeDrop": "0xe97E2A78868d13E24028a88493C17Bbd855ed8C5",
+    "baiToken": "0xB8DC44F523716B7e5b8516d3065dCe8Be4352634",
+    "liquidityManager": "0x0fcbB0971D9Da6dB018cD4eD9daBD7896a85906E"
+  },
+  "transactions": {
+    "gameDeployment": "0xf421a2098b20ccb9cad590bec102b4e75458d1242f2c0bab3730a0db58a098b6",
+    "freeDropDeployment": "0xc3e4243f6fba7d904760d9cb5afebcf30b1a2eab5717d06d26b588e9c2dcebe0",
+    "baiTokenDeployment": "0x75402c2800757ea37ef95f37d1f5229fa8f547a2bd5f5f5b9561eeb236fabc3f",
+    "addGameVRFConsumer": "0x02b45d0f7e05b68d491cd92c4f897a344ad70c296bc931f9c33916876257a463",
+    "addFreeDropVRFConsumer": "0x856d49e87640c150a75381d4cee3753ef6576e08dd93a4e222a3314a488455e6",
+    "liquidityManagerDeployment": "0x82336b57e36a73d5b375bfff12ea2696e72fe533bc101e8e697359e71cdae89a",
+    "seedLiquidity": "0xf78bcb60d80ee883ac5c5affa8f755da1ccbc22d80efa80fb98475a793192777",
+    "lockInitialLP": "0x5400ee2a163ff3c72125fbf3bc85268dd1192430630d81187ec3e9fcf54b8bdd"
+  },
+  "status": "DEPLOYED_READY",
+  "completedAt": "2026-11-15T17:27:54.356Z"
+}
