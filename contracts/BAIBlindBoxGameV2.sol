@@ -5,8 +5,8 @@ import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
-import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
+import {ImmutableVRFConsumer} from "./ImmutableVRFConsumer.sol";
+import {VRFV2PlusClient} from "./vendor/VRFV2PlusClient.sol";
 
 interface IBAIV2RouterForGame {
     function WETH() external view returns (address);
@@ -18,6 +18,9 @@ interface IBAIV2RouterForGame {
 interface IBAIMarketReadiness {
     function marketReady() external view returns (bool);
     function priceOracle() external view returns (address);
+    function game() external view returns (address);
+    function usdtToken() external view returns (address);
+    function baiToken() external view returns (address);
 }
 
 interface IBAIRewardOracle {
@@ -26,6 +29,8 @@ interface IBAIRewardOracle {
 
 interface IBAIRewardToken {
     function balanceOf(address account) external view returns (uint256);
+    function quoteToken() external view returns (address);
+    function dividendVault() external view returns (address);
     function transfer(address to, uint256 amount) external returns (bool);
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
     function burn(uint256 amount) external;
@@ -34,7 +39,7 @@ interface IBAIRewardToken {
 /// @notice BAI purchase, box receipt, and daily card reveal core.
 /// @dev Engineering milestone only. Production NFT metadata and automation are
 ///      not yet implemented; do not deploy this contract to accept production funds.
-contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
+contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
     using SafeERC20 for IERC20Metadata;
 
     uint256 public constant MAX_BOXES_PER_WALLET_PER_DAY = 10;
@@ -43,13 +48,16 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
     uint256 public constant SETTLE_BATCH_LIMIT = 50;
     uint256 public constant PRIZE_BPS = 2_200;
     uint256 public constant LIQUIDITY_BPS = 7_800;
+    uint256 public constant REFERRAL_BPS = 3_000;
     uint256 public constant STANDARD_PRIZE_BPS = 2_000;
-    uint256 public constant JOKER_PRIZE_BPS = 100;
+    uint256 public constant SPECIAL_FACE_PRIZE_BPS = 100;
     uint8 public constant TIER_R = 0;
     uint8 public constant TIER_S = 1;
     uint8 public constant TIER_SR = 2;
     uint8 public constant TIER_SSR = 3;
+    uint8 public constant TIER_SSSR = 4;
     uint256 public constant SYNTHESIS_TIMEOUT = 7 days;
+    uint256 public constant VRF_REQUEST_RETRY_DELAY = 1 days;
     uint8 public constant BOX_UNREVEALED = type(uint8).max;
     uint256 private constant ALL_FACE_BITS = (uint256(1) << 54) - 1;
 
@@ -92,6 +100,7 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
 
     struct Round {
         uint64 salesClose;
+        uint64 drawRequestedAt;
         uint32 boxCount;
         uint32 settledCount;
         uint256 totalUSDT;
@@ -136,6 +145,11 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
     uint256 public reservedBAI;
     uint256 public nextSynthesisId = 1;
     uint256 public unallocatedBAI;
+    /// @notice BAI held for accrued dividends and refundable pending synthesis fees.
+    /// @dev These balances must never be treated as game reward inventory.
+    uint256 public totalDividendLiability;
+    uint256 public pendingSynthesisFees;
+    uint256 public totalReferralLiability;
 
     struct Listing { address seller; uint128 priceUSDT; bool active; }
     mapping(uint256 tokenId => Listing) public listings;
@@ -151,11 +165,14 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
     mapping(uint64 dayId => uint256 amount) public dailyDividendPool;
     mapping(uint64 dayId => mapping(address account => bool claimed)) public dividendClaimed;
     mapping(uint64 dayId => uint256 amount) public dividendClaimedAmount;
+    mapping(uint64 dayId => uint256 weight) public dividendClaimedWeight;
 
     mapping(uint64 dayId => Round) public rounds;
     mapping(uint64 dayId => mapping(address wallet => uint8 count)) public boughtByWallet;
     mapping(address wallet => bool purchasedBefore) public hasPurchased;
     mapping(address wallet => address referrer) public referrerOf;
+    mapping(address referrer => uint256 amount) public pendingReferralUSDT;
+    mapping(uint64 dayId => uint256 amount) public referralUSDTByRound;
     mapping(uint64 dayId => uint256[] tokenIds) private roundBoxes;
     mapping(uint256 tokenId => uint64 dayId) public boxRound;
     mapping(uint256 tokenId => address buyer) public purchaseBuyer;
@@ -184,6 +201,8 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
         uint8 amount,
         uint256 usdtPaid
     );
+    event ReferralUSDTAccrued(uint64 indexed dayId, address indexed referrer, address indexed buyer, uint256 amount);
+    event ReferralUSDTClaimed(address indexed referrer, uint256 amount);
     event DrawRequested(uint64 indexed dayId, uint256 indexed requestId);
     event WinningFacesDrawn(uint64 indexed dayId, uint256 winningMask);
     event BoxRevealed(uint64 indexed dayId, uint256 indexed tokenId, uint8 face, bool winning);
@@ -220,7 +239,7 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
         address router_
     )
         ERC721("BAI Blind Box", "BAIBOX")
-        VRFConsumerBaseV2Plus(coordinator_)
+        ImmutableVRFConsumer(coordinator_)
     {
         if (usdt_ == address(0) || router_ == address(0) || confirmations_ == 0 || callbackGasLimit_ == 0) {
             revert InvalidAddress();
@@ -243,7 +262,11 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
         if (msg.sender != deployer) revert OnlyDeployer();
         if (address(baiToken) != address(0)) revert BAITokenAlreadySet();
         if (token == address(0) || token.code.length == 0 || nextTokenId != 1) revert InvalidAddress();
-        baiToken = IBAIRewardToken(token);
+        IBAIRewardToken candidate = IBAIRewardToken(token);
+        if (candidate.quoteToken() != address(usdt) || candidate.dividendVault() != address(this)) {
+            revert InvalidAddress();
+        }
+        baiToken = candidate;
         emit BAITokenSet(token);
     }
 
@@ -251,30 +274,27 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
     function setLiquidityProcessor(address processor) external {
         if (msg.sender != deployer) revert OnlyDeployer();
         if (liquidityProcessor != address(0)) revert LiquidityProcessorAlreadySet();
-        if (processor == address(0) || processor.code.length == 0 || nextTokenId != 1) {
+        if (
+            processor == address(0) || processor.code.length == 0 || nextTokenId != 1 ||
+            address(baiToken) == address(0)
+        ) {
             revert InvalidAddress();
         }
+        IBAIMarketReadiness candidate = IBAIMarketReadiness(processor);
+        if (
+            candidate.game() != address(this) || candidate.usdtToken() != address(usdt) ||
+            candidate.baiToken() != address(baiToken) || candidate.priceOracle() != processor
+        ) revert InvalidAddress();
         liquidityProcessor = processor;
         emit LiquidityProcessorSet(processor);
     }
 
     /// @notice Pay 10 USDT per box and receive the unopened box NFT atomically.
     function buyBoxes(uint8 amount, address referrer) external nonReentrant {
-        _buyBoxesWithUSDT(msg.sender, amount, referrer);
-    }
-
-    /// @notice Pay exactly one box price in USDT and mint one unopened box NFT atomically.
-    /// @dev This is a contract call, not a plain ERC-20 transfer. The buyer must first
-    ///      approve this contract to spend at least `boxPrice` USDT.
-    function buyOneBox(address referrer) external nonReentrant {
-        _buyBoxesWithUSDT(msg.sender, 1, referrer);
-    }
-
-    function _buyBoxesWithUSDT(address buyer, uint8 amount, address referrer) private {
         uint256 totalCost = boxPrice * amount;
         _checkPurchase(amount);
-        usdt.safeTransferFrom(buyer, address(this), totalCost);
-        _recordPurchase(buyer, amount, referrer, totalCost);
+        usdt.safeTransferFrom(msg.sender, address(this), totalCost);
+        _recordPurchase(msg.sender, amount, referrer, totalCost);
     }
 
     /// @notice Pay with native BNB; the router atomically swaps only the exact USDT cost.
@@ -331,6 +351,14 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
         boughtByWallet[dayId][buyer] = alreadyBought + amount;
         hasPurchased[buyer] = true;
         round.totalUSDT += totalCost;
+        address directReferrer = referrerOf[buyer];
+        if (directReferrer != address(0)) {
+            uint256 commission = totalCost * REFERRAL_BPS / 10_000;
+            pendingReferralUSDT[directReferrer] += commission;
+            totalReferralLiability += commission;
+            referralUSDTByRound[dayId] += commission;
+            emit ReferralUSDTAccrued(dayId, directReferrer, buyer, commission);
+        }
         uint256 firstTokenId = nextTokenId;
         for (uint256 i; i < amount; ++i) {
             uint256 tokenId = nextTokenId++;
@@ -349,8 +377,13 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
         Round storage round = rounds[dayId];
         if (round.boxCount == 0 || round.salesClose == 0) revert RoundNotFound();
         if (block.timestamp < round.salesClose) revert SalesStillOpen();
-        if (round.drawRequested) revert DrawAlreadyRequested();
+        if (round.randomnessLoaded || roundRandomnessFulfilled[dayId]) revert DrawAlreadyRequested();
+        if (
+            round.drawRequested &&
+            block.timestamp < uint256(round.drawRequestedAt) + VRF_REQUEST_RETRY_DELAY
+        ) revert DrawAlreadyRequested();
         round.drawRequested = true;
+        round.drawRequestedAt = uint64(block.timestamp);
         uint256 requestId = _requestRandomWord();
         requestForDay[dayId] = requestId;
         dayForRequest[requestId] = dayId;
@@ -387,6 +420,13 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
             uint8 face = uint8(uint256(keccak256(abi.encode(seed, dayId, tokenId))) % 54);
             bool won = (round.winningMask & (uint256(1) << face)) != 0;
             revealedFace[tokenId] = face;
+            if (face >= 52) {
+                cardTier[tokenId] = TIER_SSSR;
+                // Special BTC/ETH cards become SSSR at reveal time, after the
+                // ERC721 mint hook has already run. Add their dividend weight
+                // here so the first eligible snapshot includes them.
+                _changeDividendWeight(ownerOf(tokenId), true);
+            }
             isWinningBox[tokenId] = won;
             if (won) winningCountByFace[dayId][face] += 1;
             else round.loserCount += 1;
@@ -403,16 +443,16 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
 
         uint256 standardPool = round.totalUSDT * STANDARD_PRIZE_BPS / 10_000;
         uint256 standardFaceBudget = standardPool / 12;
-        uint256 jokerBudget = round.totalUSDT * JOKER_PRIZE_BPS / 10_000;
+        uint256 specialFaceBudget = round.totalUSDT * SPECIAL_FACE_PRIZE_BPS / 10_000;
         uint256 prizeBudget = round.totalUSDT * PRIZE_BPS / 10_000;
-        uint256 faceBudgets = standardFaceBudget * 12 + jokerBudget * 2;
+        uint256 faceBudgets = standardFaceBudget * 12 + specialFaceBudget * 2;
         // Carry division dust until face 0 is selected; it is then paid or
         // rolled over by the same rules as that face's regular budget.
         prizeRoundingCarryUSDT += prizeBudget - faceBudgets;
 
         for (uint8 face; face < 54; ++face) {
             if ((round.winningMask & (uint256(1) << face)) == 0) continue;
-            uint256 baseFaceBudget = face >= 52 ? jokerBudget : standardFaceBudget;
+            uint256 baseFaceBudget = face >= 52 ? specialFaceBudget : standardFaceBudget;
             if (face == 0) {
                 baseFaceBudget += prizeRoundingCarryUSDT;
                 prizeRoundingCarryUSDT = 0;
@@ -427,10 +467,12 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
                 emit PrizeRolloverUpdated(face, faceBudget);
             }
         }
-        round.liquidityBudget = round.totalUSDT * LIQUIDITY_BPS / 10_000;
+        uint256 baseLiquidityBudget = round.totalUSDT * LIQUIDITY_BPS / 10_000;
+        round.liquidityBudget = baseLiquidityBudget - referralUSDTByRound[dayId];
         if (round.loserCount != 0 && round.desiredBaiPerLoser != 0) {
             uint256 inventory = baiToken.balanceOf(address(this));
-            uint256 available = inventory > reservedBAI ? inventory - reservedBAI : 0;
+            uint256 protectedBalance = reservedBAI + totalDividendLiability + pendingSynthesisFees;
+            uint256 available = inventory > protectedBalance ? inventory - protectedBalance : 0;
             uint256 maxPerLoser = available / (uint256(round.loserCount) * 2);
             round.baiRewardPerLoser = round.desiredBaiPerLoser < maxPerLoser
                 ? round.desiredBaiPerLoser
@@ -442,7 +484,7 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
         emit DrawFinalized(dayId, round.boxCount, round.rolloverUSDT);
     }
 
-    /// @notice Release the fixed 78% budget to the configured LP processor once.
+    /// @notice Release the liquidity budget once, after deducting this round's direct referral commissions.
     function releaseLiquidityBudget(uint64 dayId) external nonReentrant returns (uint256 amount) {
         if (msg.sender != liquidityProcessor || liquidityProcessor == address(0)) {
             revert OnlyLiquidityProcessor();
@@ -454,6 +496,16 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
         amount = round.liquidityBudget;
         usdt.safeTransfer(liquidityProcessor, amount);
         emit LiquidityBudgetReleased(dayId, liquidityProcessor, amount);
+    }
+
+    /// @notice Withdraw USDT commission accrued from direct referrals' paid box purchases.
+    function claimReferralCommission() external nonReentrant returns (uint256 amount) {
+        amount = pendingReferralUSDT[msg.sender];
+        if (amount == 0) revert RewardAlreadyClaimed();
+        pendingReferralUSDT[msg.sender] = 0;
+        totalReferralLiability -= amount;
+        usdt.safeTransfer(msg.sender, amount);
+        emit ReferralUSDTClaimed(msg.sender, amount);
     }
 
     /// @notice Winning box owner claims an equal share of that face's USDT pool.
@@ -483,7 +535,7 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
         }
     }
 
-    /// @notice Claim the box's BAI award; inviter shares come out of the same 1 USDT-value award.
+    /// @notice Claim the full BAI award for a non-winning box; USDT referral commission is accounted for separately per paid box.
     function claimBAIReward(uint256 tokenId) external nonReentrant {
         address tokenOwner = ownerOf(tokenId);
         if (tokenOwner != msg.sender) revert InvalidAddress();
@@ -498,25 +550,13 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
         if (baseAward == 0) return;
         reservedBAI -= baseAward * 2;
 
-        address buyer = purchaseBuyer[tokenId];
-        address level1 = referrerOf[buyer];
-        address level2 = level1 == address(0) ? address(0) : referrerOf[level1];
-        address level3 = level2 == address(0) ? address(0) : referrerOf[level2];
-        uint256 level1Award = level1 == address(0) ? 0 : baseAward * 5 / 100;
-        uint256 level2Award = level2 == address(0) ? 0 : baseAward * 3 / 100;
-        uint256 level3Award = level3 == address(0) ? 0 : baseAward / 100;
-        uint256 ownerAward = baseAward - level1Award - level2Award - level3Award;
-
-        if (ownerAward != 0 && !baiToken.transfer(tokenOwner, ownerAward)) revert InvalidAddress();
-        if (level1Award != 0 && !baiToken.transfer(level1, level1Award)) revert InvalidAddress();
-        if (level2Award != 0 && !baiToken.transfer(level2, level2Award)) revert InvalidAddress();
-        if (level3Award != 0 && !baiToken.transfer(level3, level3Award)) revert InvalidAddress();
+        if (!baiToken.transfer(tokenOwner, baseAward)) revert InvalidAddress();
         baiToken.burn(baseAward);
-        emit BAIRewardClaimed(dayId, tokenId, tokenOwner, ownerAward, baseAward);
+        emit BAIRewardClaimed(dayId, tokenId, tokenOwner, baseAward, baseAward);
     }
 
     /// @notice Escrow any four revealed non-winning cards and pay the tier fee to attempt synthesis.
-    /// @dev The output tier is one level above the highest input tier, capped at SSR.
+    /// @dev The output tier is one level above the highest input tier, capped at SSSR.
     function requestSynthesis(uint256[4] calldata tokenIds)
         external
         nonReentrant
@@ -537,9 +577,10 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
             if (cardTier[tokenId] > highestInputTier) highestInputTier = cardTier[tokenId];
         }
 
-        uint8 outputTier = highestInputTier >= TIER_SSR ? TIER_SSR : highestInputTier + 1;
+        uint8 outputTier = highestInputTier >= TIER_SSSR ? TIER_SSSR : highestInputTier + 1;
         uint128 fee = _synthesisFee(outputTier);
         if (!baiToken.transferFrom(msg.sender, address(this), fee)) revert InvalidSynthesis();
+        pendingSynthesisFees += fee;
 
         synthesisId = nextSynthesisId++;
         syntheses[synthesisId] = Synthesis({
@@ -572,6 +613,7 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
         item.completed = true;
         uint256[4] storage inputs = synthesisCards[synthesisId];
         for (uint256 i; i < 4; ++i) _burn(inputs[i]);
+        pendingSynthesisFees -= item.fee;
         baiToken.burn(item.fee);
 
         bool success = (seed & 1) == 0;
@@ -598,6 +640,7 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
         item.cancelled = true;
         uint256[4] storage inputs = synthesisCards[synthesisId];
         for (uint256 i; i < 4; ++i) _transfer(address(this), item.owner, inputs[i]);
+        pendingSynthesisFees -= item.fee;
         if (!baiToken.transfer(item.owner, item.fee)) revert InvalidSynthesis();
         emit SynthesisCancelled(synthesisId, item.owner);
     }
@@ -631,12 +674,12 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
         if (randomWords.length == 0) revert RandomnessPending();
         if (requestIsForge[requestId]) {
             uint256 forgeId = forgeForRequest[requestId];
-            if (forgeId == 0 || requestForForge[forgeId] != requestId) revert RandomnessPending();
+            if (forgeId == 0 || requestForForge[forgeId] != requestId) return;
             forgeSeed[forgeId] = randomWords[0];
             forgeRandomnessFulfilled[forgeId] = true;
         } else {
             uint64 dayId = dayForRequest[requestId];
-            if (dayId == 0 || requestForDay[dayId] != requestId) revert RandomnessPending();
+            if (dayId == 0 || requestForDay[dayId] != requestId) return;
             roundSeed[dayId] = randomWords[0];
             roundRandomnessFulfilled[dayId] = true;
         }
@@ -647,6 +690,7 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
         if (msg.sender != address(baiToken)) revert OnlyBAIToken();
         if (amount == 0) return;
         uint64 dayId = _beijingDayId(block.timestamp);
+        totalDividendLiability += amount;
         if (getTotalDividendWeightAt(_dayStart(dayId)) == 0) {
             unallocatedBAI += amount;
             emit DividendQueued(amount, unallocatedBAI);
@@ -665,9 +709,13 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
         uint256 pool = dailyDividendPool[dayId];
         if (totalWeight == 0 || accountWeight == 0 || pool == 0) revert RewardAlreadyClaimed();
         amount = pool * accountWeight / totalWeight;
+        uint256 claimedWeight = dividendClaimedWeight[dayId] + accountWeight;
+        if (claimedWeight >= totalWeight) amount = pool - dividendClaimedAmount[dayId];
         if (amount == 0) revert RewardAlreadyClaimed();
         dividendClaimed[dayId][msg.sender] = true;
+        dividendClaimedWeight[dayId] = claimedWeight;
         dividendClaimedAmount[dayId] += amount;
+        totalDividendLiability -= amount;
         if (!baiToken.transfer(msg.sender, amount)) revert InvalidAddress();
         emit DividendClaimed(dayId, msg.sender, amount);
     }
@@ -676,7 +724,13 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
         if (dayId >= _beijingDayId(block.timestamp) || dividendClaimed[dayId][account]) return 0;
         uint256 totalWeight = getTotalDividendWeightAt(_dayStart(dayId));
         if (totalWeight == 0) return 0;
-        return dailyDividendPool[dayId] * getDividendWeightAt(account, _dayStart(dayId)) / totalWeight;
+        uint256 accountWeight = getDividendWeightAt(account, _dayStart(dayId));
+        if (accountWeight == 0) return 0;
+        uint256 amount = dailyDividendPool[dayId] * accountWeight / totalWeight;
+        if (dividendClaimedWeight[dayId] + accountWeight >= totalWeight) {
+            amount = dailyDividendPool[dayId] - dividendClaimedAmount[dayId];
+        }
+        return amount;
     }
 
     /// @notice Escrow a revealed losing card for a fixed USDT price.
@@ -722,8 +776,8 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, VRFConsumerBaseV2Plus {
             (deck[i], deck[j]) = (deck[j], deck[i]);
             mask |= uint256(1) << deck[i];
         }
-        mask |= uint256(1) << 52; // Big Joker is always included.
-        mask |= uint256(1) << 53; // Small Joker is always included.
+        mask |= uint256(1) << 52; // BTC special face is always included.
+        mask |= uint256(1) << 53; // ETH special face is always included.
         return mask & ALL_FACE_BITS;
     }
 
