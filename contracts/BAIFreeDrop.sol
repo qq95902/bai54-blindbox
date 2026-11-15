@@ -4,16 +4,20 @@ pragma solidity ^0.8.26;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
-import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
+import {ImmutableVRFConsumer} from "./ImmutableVRFConsumer.sol";
+import {VRFV2PlusClient} from "./vendor/VRFV2PlusClient.sol";
 
 interface IBAIFreeDropPurchaseHistory {
     function hasPurchased(address account) external view returns (bool);
 }
 
-/// @notice Daily BAI gift campaign, separated from the paid game to stay below
+interface IBAIFreeDropBurnable {
+    function burn(uint256 amount) external;
+}
+
+/// @notice Daily BAI-only gift campaign, separated from the paid game to stay below
 ///         the EVM deployed-code size limit.
-contract BAIFreeDrop is ReentrancyGuard, VRFConsumerBaseV2Plus {
+contract BAIFreeDrop is ReentrancyGuard, ImmutableVRFConsumer {
     using SafeERC20 for IERC20;
 
     uint32 public constant MAX_CLAIMS_PER_DAY = 3_000;
@@ -35,8 +39,11 @@ contract BAIFreeDrop is ReentrancyGuard, VRFConsumerBaseV2Plus {
     error RandomnessPending();
     error PaidBoxRequired();
     error NothingToClaim();
+    error OnlyDeployer();
+    error BAITokenAlreadySet();
 
-    IERC20 public immutable baiToken;
+    IERC20 public baiToken;
+    address public immutable deployer;
     IBAIFreeDropPurchaseHistory public immutable game;
     bytes32 public immutable vrfKeyHash;
     uint256 public immutable vrfSubscriptionId;
@@ -70,24 +77,25 @@ contract BAIFreeDrop is ReentrancyGuard, VRFConsumerBaseV2Plus {
     event FreeDropDrawRequested(uint64 indexed dayId, uint256 indexed requestId);
     event FreeRewardAssigned(uint64 indexed dayId, address indexed account, uint8 amount, bool special, bool unlocked);
     event PendingRewardClaimed(address indexed account, uint256 amount);
+    event UnusedReserveBurned(uint256 amount);
+    event BAITokenSet(address indexed token);
 
     constructor(
-        address baiToken_,
         address game_,
         address coordinator_,
         bytes32 keyHash_,
         uint256 subscriptionId_,
         uint16 confirmations_,
         uint32 callbackGasLimit_
-    ) VRFConsumerBaseV2Plus(coordinator_) {
-        if (baiToken_ == address(0) || game_ == address(0) || coordinator_ == address(0) ||
+    ) ImmutableVRFConsumer(coordinator_) {
+        if (game_ == address(0) || coordinator_ == address(0) ||
             game_.code.length == 0 || coordinator_.code.length == 0) {
             revert InvalidAddress();
         }
         if (keyHash_ == bytes32(0) || subscriptionId_ == 0 || confirmations_ == 0 || callbackGasLimit_ == 0) {
             revert InvalidConfig();
         }
-        baiToken = IERC20(baiToken_);
+        deployer = msg.sender;
         game = IBAIFreeDropPurchaseHistory(game_);
         vrfKeyHash = keyHash_;
         vrfSubscriptionId = subscriptionId_;
@@ -95,8 +103,21 @@ contract BAIFreeDrop is ReentrancyGuard, VRFConsumerBaseV2Plus {
         vrfCallbackGasLimit = callbackGasLimit_;
     }
 
+    /// @notice Bind the BAI token once after deployment and verify the campaign reserve.
+    /// @dev This breaks the deployment-address cycle without leaving a mutable token setting.
+    function setBAIToken(address token) external {
+        if (msg.sender != deployer) revert OnlyDeployer();
+        if (address(baiToken) != address(0)) revert BAITokenAlreadySet();
+        if (token == address(0) || token.code.length == 0 || totalClaims != 0) revert InvalidAddress();
+        IERC20 candidate = IERC20(token);
+        if (candidate.balanceOf(address(this)) < FREE_REWARD_RESERVE) revert InvalidConfig();
+        baiToken = candidate;
+        emit BAITokenSet(token);
+    }
+
     /// @notice Register one free reward entry for this Beijing day.
     function claimFreeBox() external {
+        if (address(baiToken) == address(0)) revert InvalidConfig();
         if (totalClaims >= MAX_CLAIMS_TOTAL) revert ClaimLimitReached();
         uint64 dayId = currentDayId();
         if (claimedToday[dayId][msg.sender]) revert AlreadyClaimedToday();
@@ -128,8 +149,8 @@ contract BAIFreeDrop is ReentrancyGuard, VRFConsumerBaseV2Plus {
         emit FreeDropDrawRequested(dayId, requestId);
     }
 
-    /// @notice Settle claims in global registration order; this prevents a caller
-    ///         from choosing which day's wallets draw from the remaining rarity pool.
+    /// @notice Settle claims in global registration order. This keeps the fixed
+    ///         5,000-special / 195,000-standard campaign allocation unbiased.
     function settleBatch(uint32 fromIndex, uint32 count) external nonReentrant {
         if (count == 0 || count > SETTLE_BATCH_LIMIT || fromIndex != totalSettled ||
             uint256(fromIndex) + count > claimQueue.length) revert InvalidBatch();
@@ -183,6 +204,18 @@ contract BAIFreeDrop is ReentrancyGuard, VRFConsumerBaseV2Plus {
         emit PendingRewardClaimed(msg.sender, amount);
     }
 
+    /// @notice Burn unused campaign inventory after every allocated claim has
+    ///         settled and every pending reward has been withdrawn.
+    function burnUnusedReserve() external nonReentrant {
+        if (totalClaims != MAX_CLAIMS_TOTAL || totalSettled != totalClaims ||
+            pendingRewardReserve != 0 || freeRewardReserve != 0) revert DrawNotReady();
+        uint256 amount = baiToken.balanceOf(address(this));
+        if (amount == 0) revert NothingToClaim();
+        freeRewardReserve = 0;
+        IBAIFreeDropBurnable(address(baiToken)).burn(amount);
+        emit UnusedReserveBurned(amount);
+    }
+
     function freeDropStatus(address account) external view returns (
         uint64 dayId,
         uint32 claimsToday,
@@ -196,7 +229,7 @@ contract BAIFreeDrop is ReentrancyGuard, VRFConsumerBaseV2Plus {
         claimsTotal = totalClaims;
         pending = pendingReward[account];
         didClaimToday = claimedToday[dayId][account];
-        eligibleToClaim = !didClaimToday && claimsToday < MAX_CLAIMS_PER_DAY &&
+        eligibleToClaim = address(baiToken) != address(0) && !didClaimToday && claimsToday < MAX_CLAIMS_PER_DAY &&
             claimsTotal < MAX_CLAIMS_TOTAL &&
             baiToken.balanceOf(address(this)) >= pendingRewardReserve + freeRewardReserve;
     }
