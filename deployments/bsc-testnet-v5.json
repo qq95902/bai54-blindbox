@@ -1,0 +1,55 @@
+{
+  "network": "BNB Smart Chain Testnet",
+  "chainId": 97,
+  "version": 5,
+  "deployer": "0xf94199e3C635b61253Aadb235183F684df49A810",
+  "external": {
+    "usdt": "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd",
+    "router": "0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3",
+    "factory": "0xB7926C0430Afb07AA7DEfDE6DA862aE0Bde767bc",
+    "vrfCoordinator": "0xDA3b641D438362C440Ac5458c57e00a712b66700",
+    "vrfSubscriptionId": "62224439238952900277820817768287453736344994384904839943325233531854589005264",
+    "wrappedNative": "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd",
+    "pair": "0xE7fa7F911dcE997348C1554A6c8aF00ff4811dee"
+  },
+  "initialLiquidity": {
+    "usdt": "2.0",
+    "bai": "80000.0",
+    "lpSharesLocked": "395979797464466612664"
+  },
+  "vrf": {
+    "subscriptionOwner": "0xf94199e3C635b61253Aadb235183F684df49A810",
+    "nativeBalanceWei": "200000000000000000",
+    "existingConsumers": 4
+  },
+  "testnetSettings": {
+    "observationIntervalSeconds": 5,
+    "twapSeconds": 15,
+    "maximumObservationAgeSeconds": 300,
+    "minimumPoolValueUSDT": 2
+  },
+  "rules": {
+    "directReferralUSDT": "3 USDT per referred 10 USDT box (30%), one level only",
+    "lpAllocation": "78% sales less same-round referral commissions",
+    "legacyMultiLevelReferral": false
+  },
+  "startedAt": "2026-11-15T17:18:22.123Z",
+  "contracts": {
+    "game": "0x1B6a8863A65bf3c5A6319299CaE1F9052C977c78",
+    "freeDrop": "0x2E22EE1fD94c17Ad655B92E34033D90a5CEadfa7",
+    "baiToken": "0x65e4bD8DAa90dB8Ba1cCc0A71b10D99728e961B4",
+    "liquidityManager": "0x554FA2FE254929Ca0Df824de47E2b1F9E1237Ab4"
+  },
+  "transactions": {
+    "gameDeployment": "0xb0a61f108d1c842f22a479e3e640062ac0a844d3598d4f1cf48342c05fe51cc1",
+    "freeDropDeployment": "0x90c3fd53c3469a0983e33566d9b2fec565a784f268362c1d6f9e8ceb1208f3b6",
+    "baiTokenDeployment": "0xdca082f63dadd26fc718f0af4fbc514a62c85b3deb8e21e5e49c5818483c8afa",
+    "liquidityManagerDeployment": "0xdaf32663990d6b03395ce4c9a59c56b9f90eb6d487b7c36dc07d4f02e3ae678c",
+    "seedLiquidity": "0x1655b4c1df155a0bcd354b7859445aff0ac900ff1812913a187071126fddd57c",
+    "lockInitialLP": "0x1a7fd839e8177ab8122b1d053ad2473482c6ff2027b0d947af14fba13c65fc35"
+  },
+  "status": "SUPERSEDED_INVALID_ORACLE_FLOOR_UNITS",
+  "completedAt": "2026-11-15T17:25:11.231Z",
+  "supersededBy": "bsc-testnet-v6.json",
+  "note": "Do not use these v5 addresses for purchases. The oracle minimum-pool argument was passed in 18-decimal units instead of whole USDT, so the sale gate could not open. The corrected v6 suite is active."
+}
