@@ -1,0 +1,28 @@
+{
+  "name": "bai-blind-box-dapp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22 <24"
+  },
+  "scripts": {
+    "compile": "node scripts/compile.mjs",
+    "deploy:testnet:check": "node scripts/deploy-testnet.mjs",
+    "deploy:testnet": "node scripts/deploy-testnet.mjs --execute",
+    "deploy:mainnet:check": "node scripts/deploy-mainnet.mjs",
+    "deploy:mainnet": "node scripts/deploy-mainnet.mjs --execute",
+    "sandbox:simulate": "node sandbox/run.mjs"
+  },
+  "dependencies": {
+    "ethers": "6.17.0"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "5.4.0",
+    "ganache": "^7.9.2",
+    "solc": "0.8.26"
+  },
+  "overrides": {
+    "tmp": "0.2.7"
+  }
+}
