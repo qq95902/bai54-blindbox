@@ -127,6 +127,19 @@ async function deploy(name, args, key) {
     process.stdout.write(`${name}: resuming at ${plan.contracts[key]}\n`);
     return new Contract(plan.contracts[key], build.abi, signer);
   }
+  const pendingHash = plan.transactions[`${key}Deployment`];
+  if (pendingHash) {
+    let receipt = await provider.getTransactionReceipt(pendingHash);
+    if (!receipt) receipt = await provider.waitForTransaction(pendingHash, 1);
+    if (!receipt || receipt.status !== 1 || !receipt.contractAddress ||
+        (await provider.getCode(receipt.contractAddress)) === '0x') {
+      throw new Error(`Recorded ${name} deployment ${pendingHash} did not produce contract code; inspect it before retrying`);
+    }
+    plan.contracts[key] = getAddress(receipt.contractAddress);
+    save({ ...plan, status: 'DEPLOYING' });
+    process.stdout.write(`${name}: recovered mined deployment at ${plan.contracts[key]}\n`);
+    return new Contract(plan.contracts[key], build.abi, signer);
+  }
   const contract = await new ContractFactory(build.abi, build.bytecode, signer).deploy(...args);
   const tx = contract.deploymentTransaction();
   plan.transactions[`${key}Deployment`] = tx.hash;
