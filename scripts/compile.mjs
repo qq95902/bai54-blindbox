@@ -28,7 +28,7 @@ function resolveImport(importPath) {
 
 addSolidityFiles(contractsDir);
 const settings = {
-  optimizer: { enabled: true, runs: 200 },
+  optimizer: { enabled: true, runs: 1 },
   viaIR: true,
   metadata: { bytecodeHash: 'none' },
   outputSelection: { '*': { '*': ['abi', 'evm.bytecode.object', 'evm.deployedBytecode.object'] } }
