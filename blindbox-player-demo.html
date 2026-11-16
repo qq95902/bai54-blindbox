@@ -521,7 +521,7 @@
   ];
   const ordinary=ordinaryAssets.flatMap(([symbol],assetIndex)=>faceSkins.map((skin,skinIndex)=>`${symbol}:${skin}`));
   const allFaces=[...ordinary,'BTC','ETH'];
-  const faceMeta=new Map(ordinaryAssets.flatMap(([symbol,zh,en],assetIndex)=>faceSkins.map((skin,skinIndex)=>[`${symbol}:${skin}`,{symbol,zh,en,assetIndex,skin,skinIndex,special:false}])).concat([['BTC',{symbol:'BTC',zh:'比特币',en:'Bitcoin',special:true}],['ETH',{symbol:'ETH',zh:'以太坊',en:'Ethereum',special:true}]]));
+  const faceMeta=new Map(ordinaryAssets.flatMap(([symbol,zh,en],assetIndex)=>faceSkins.map((skin,skinIndex)=>[`${symbol}:${skin}`,{symbol,zh,en,assetIndex,skin,skinIndex,special:false}])).concat(faceSkins.map((skin,skinIndex)=>[`TON:${skin}`,{symbol:'GRAM',zh:'Gram',en:'Gram',assetIndex:8,skin,skinIndex,special:false}])).concat([['BTC',{symbol:'BTC',zh:'比特币',en:'Bitcoin',special:true}],['ETH',{symbol:'ETH',zh:'以太坊',en:'Ethereum',special:true}]]));
   const CONFIG=window.BAI_CONFIG;
   if(!CONFIG||Number(CONFIG.chainId)!==97||!CONFIG.contracts)throw Error('BSC testnet contract configuration is missing.');
   const CHAIN_ID=Number(CONFIG.chainId), CHAIN_HEX='0x'+CHAIN_ID.toString(16), GAME=CONFIG.contracts.game, BAI=CONFIG.contracts.bai, FREE_DROP=CONFIG.contracts.freeDrop, USDT=CONFIG.contracts.usdt, ROUTER=CONFIG.contracts.router;
