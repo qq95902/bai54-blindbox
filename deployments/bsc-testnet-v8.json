@@ -1,0 +1,57 @@
+{
+  "network": "BNB Smart Chain Testnet",
+  "chainId": 97,
+  "version": 8,
+  "deployer": "0xf94199e3C635b61253Aadb235183F684df49A810",
+  "external": {
+    "usdt": "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd",
+    "router": "0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3",
+    "factory": "0xB7926C0430Afb07AA7DEfDE6DA862aE0Bde767bc",
+    "vrfCoordinator": "0xDA3b641D438362C440Ac5458c57e00a712b66700",
+    "vrfSubscriptionId": "62224439238952900277820817768287453736344994384904839943325233531854589005264",
+    "wrappedNative": "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd",
+    "pair": "0xF95977792cdd289538fb3B1d5BA7033Da85D0BEB"
+  },
+  "initialLiquidity": {
+    "usdt": "2.0",
+    "bai": "80000.0",
+    "lpSharesLocked": "395979797464466612664"
+  },
+  "vrf": {
+    "subscriptionOwner": "0xf94199e3C635b61253Aadb235183F684df49A810",
+    "nativeBalanceWei": "200000000000000000",
+    "existingConsumers": 10
+  },
+  "testnetSettings": {
+    "observationIntervalSeconds": 5,
+    "twapSeconds": 15,
+    "maximumObservationAgeSeconds": 300,
+    "minimumPoolValueUSDT": 2
+  },
+  "rules": {
+    "directReferralUSDT": "3 USDT per referred 10 USDT box (30%), one level only",
+    "lpAllocation": "78% sales less same-round referral commissions",
+    "legacyMultiLevelReferral": false
+  },
+  "startedAt": "2026-11-16T11:41:15.309Z",
+  "contracts": {
+    "metadataRenderer": "0xf951eDE8338E1BBc846407BCB5092618C743a349",
+    "game": "0xD4fA534CEced391E2A39f5Ce21c15E478595B2Fe",
+    "freeDrop": "0xD3c48B4C61b10018D0858DDD4701D4181BD479A7",
+    "baiToken": "0xA422A766991b1a05999fda8549D2244A81Cd7933",
+    "liquidityManager": "0x4A100113176ea0b51EE232e2E03e2Ca1d79248cC"
+  },
+  "transactions": {
+    "metadataRendererDeployment": "0x425a247e2fa06939e9dfd2a5d8a2acdcb5ac20faf3c2e6f700d1ce33b1bddb5c",
+    "gameDeployment": "0x61a4a881bb5b9022dd376cb44b39fbda64f38a34224925a8bb134c2c6b551105",
+    "freeDropDeployment": "0x1027127937b4716c2bb7ff8cc79e540d0552c7ca4ef0be40f599250e3448cbb3",
+    "baiTokenDeployment": "0x9c6efb6713c0741aa4818a581bbaa80c8727c703e1c5606bf833b7b00c829a2b",
+    "addGameVRFConsumer": "0x103e069eff9c8c6f13cc4f2a0f88e881d4bf2742f7ee72f373fe576401752e10",
+    "addFreeDropVRFConsumer": "0x12efcef53fa33253527af7e096022f2b0a14ff2c5c1ac412a6a3fa174f9f87df",
+    "liquidityManagerDeployment": "0xe156873c0e5c681248b722dd62278f0e0cb1b2e24cbf9d3fbbf6054ec5cf8cea",
+    "seedLiquidity": "0x58595733e8ce3f0934846ab243775e77a745acdef9f3e4247f0e4b91d2993fde",
+    "lockInitialLP": "0x43b1ec3eb25bc0cfad4710e78a59a4900c98d39017c4dc9bcc0ee5fe0d8ee700"
+  },
+  "status": "DEPLOYED_READY",
+  "completedAt": "2026-11-16T11:43:08.453Z"
+}
