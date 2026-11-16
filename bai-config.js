@@ -16,12 +16,12 @@ window.BAI_CONFIG = Object.freeze({
   "readRpcUrl": "https://data-seed-prebsc-1-s1.binance.org:8545/",
   "apiBaseUrl": "",
   "contracts": {
-    "game": "0x72CB481781d8c8DcAC71e21FD87D6F3F3a044572",
-    "bai": "0xCCB40688e08D4b33734D03e7E68d04AF9FaE55Ff",
-    "freeDrop": "0x737040c039dceeDf23251e5ea2646Bf89cF8Ef1a",
-    "metadataRenderer": "0x84A966c74B4b7DF9f4371Ff8eC5b57A3DBfcDEb1",
+    "game": "0xD4fA534CEced391E2A39f5Ce21c15E478595B2Fe",
+    "bai": "0xA422A766991b1a05999fda8549D2244A81Cd7933",
+    "freeDrop": "0xD3c48B4C61b10018D0858DDD4701D4181BD479A7",
+    "metadataRenderer": "0xf951eDE8338E1BBc846407BCB5092618C743a349",
     "usdt": "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd",
     "router": "0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3",
-    "liquidityManager": "0xF95010B31Ec5F611589777910f2CD51b32722355"
+    "liquidityManager": "0x4A100113176ea0b51EE232e2E03e2Ca1d79248cC"
   }
 });
