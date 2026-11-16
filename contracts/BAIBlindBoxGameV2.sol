@@ -36,9 +36,19 @@ interface IBAIRewardToken {
     function burn(uint256 amount) external;
 }
 
+interface IBAICardMetadataRenderer {
+    function tokenURI(
+        uint256 tokenId,
+        uint8 face,
+        uint8 tier,
+        bool winning,
+        bool synthesized,
+        uint64 dayId
+    ) external view returns (string memory);
+}
+
 /// @notice BAI purchase, box receipt, and daily card reveal core.
-/// @dev Engineering milestone only. Production NFT metadata and automation are
-///      not yet implemented; do not deploy this contract to accept production funds.
+/// @dev Box and revealed-card metadata are generated on-chain as SVG/JSON data URIs.
 contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
     using SafeERC20 for IERC20Metadata;
 
@@ -137,6 +147,7 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
     uint16 public immutable vrfRequestConfirmations;
     uint32 public immutable vrfCallbackGasLimit;
     IBAIV2RouterForGame public immutable router;
+    IBAICardMetadataRenderer public immutable metadataRenderer;
     address public liquidityProcessor;
     uint256 public immutable boxPrice;
     uint256 public immutable usdtUnit;
@@ -236,12 +247,14 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
         uint256 subscriptionId_,
         uint16 confirmations_,
         uint32 callbackGasLimit_,
-        address router_
+        address router_,
+        address metadataRenderer_
     )
         ERC721("BAI Blind Box", "BAIBOX")
         ImmutableVRFConsumer(coordinator_)
     {
-        if (usdt_ == address(0) || router_ == address(0) || confirmations_ == 0 || callbackGasLimit_ == 0) {
+        if (usdt_ == address(0) || router_ == address(0) || metadataRenderer_ == address(0) ||
+            metadataRenderer_.code.length == 0 || confirmations_ == 0 || callbackGasLimit_ == 0) {
             revert InvalidAddress();
         }
         deployer = msg.sender;
@@ -251,10 +264,18 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
         vrfRequestConfirmations = confirmations_;
         vrfCallbackGasLimit = callbackGasLimit_;
         router = IBAIV2RouterForGame(router_);
+        metadataRenderer = IBAICardMetadataRenderer(metadataRenderer_);
         uint8 tokenDecimals = usdt.decimals();
         if (tokenDecimals > 18) revert InvalidAmount();
         usdtUnit = 10 ** uint256(tokenDecimals);
         boxPrice = 10 * (10 ** uint256(tokenDecimals));
+    }
+
+    /// @notice Return self-contained JSON metadata and SVG artwork for this box/card.
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        _requireOwned(tokenId);
+        return metadataRenderer.tokenURI(tokenId, revealedFace[tokenId], cardTier[tokenId],
+            isWinningBox[tokenId], isSynthesized[tokenId], boxRound[tokenId]);
     }
 
     /// @notice One-time token wiring before any boxes are sold.
@@ -649,10 +670,6 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
         if (outputTier == TIER_S) return uint128(10 ether);
         if (outputTier == TIER_SR) return uint128(25 ether);
         return uint128(50 ether);
-    }
-
-    function boxesOfRound(uint64 dayId) external view returns (uint256[] memory) {
-        return roundBoxes[dayId];
     }
 
     function _requestRandomWord() private returns (uint256 requestId) {
