@@ -4,7 +4,7 @@ import { Contract, ContractFactory, JsonRpcProvider, Wallet, getAddress, parseUn
 import { execFileSync } from 'node:child_process';
 
 const root = process.cwd();
-const outputPath = path.join(root, 'deployments', 'bsc-testnet-v7.json');
+const outputPath = path.join(root, 'deployments', 'bsc-testnet-v8.json');
 const execute = process.argv.includes('--execute');
 const envFiles = [path.join(root, '.env.testnet'), path.join(root, '.env'), path.resolve(root, '../bai54-contracts/.env')];
 for (const file of envFiles) {
@@ -93,7 +93,7 @@ const subscription = await vrf.getSubscription(subscriptionId);
 if (subscription.owner.toLowerCase() !== signerAddress.toLowerCase()) throw new Error('Configured deployer does not own the VRF subscription');
 if (subscription.nativeBalance === 0n) throw new Error('VRF subscription native balance is zero');
 const newPlan = {
-  network: 'BNB Smart Chain Testnet', chainId: 97, version: 7, deployer: signerAddress,
+  network: 'BNB Smart Chain Testnet', chainId: 97, version: 8, deployer: signerAddress,
   external: { usdt, router: routerAddress, factory: factoryAddress, vrfCoordinator: coordinator, vrfSubscriptionId: subscriptionId.toString(), wrappedNative: await router.WETH() },
   initialLiquidity: { usdt: formatUnits(usdtSeed, Number(usdtDecimals)), bai: formatUnits(baiSeed, 18) },
   vrf: { subscriptionOwner: subscription.owner, nativeBalanceWei: subscription.nativeBalance.toString(), existingConsumers: subscription.consumers.length },
@@ -114,7 +114,7 @@ if (previous) {
 const plan = previous ? { ...newPlan, ...previous, external: { ...newPlan.external, ...previous.external }, contracts: { ...previous.contracts }, transactions: { ...previous.transactions } } : newPlan;
 process.stdout.write(`${JSON.stringify({ ...plan, deployerBalance: { tBNB: formatUnits(nativeBalance, 18), testUSDT: formatUnits(usdtBalance, Number(usdtDecimals)) } }, null, 2)}\n`);
 if (!execute) {
-  process.stdout.write('Read-only preflight passed. No transaction sent. Run npm run deploy:testnet to deploy testnet v7.\n');
+  process.stdout.write('Read-only preflight passed. No transaction sent. Run npm run deploy:testnet to deploy testnet v8.\n');
   process.exit(0);
 }
 
@@ -229,4 +229,4 @@ plan.status = ready ? 'DEPLOYED_READY' : 'DEPLOYED_TWAP_WARMUP';
 plan.completedAt = new Date().toISOString();
 plan.initialLiquidity.lpSharesLocked = lpAmount.toString();
 save(plan);
-process.stdout.write(`Testnet v7 deployment complete. Market ready: ${ready}. Manifest: ${outputPath}\n`);
+process.stdout.write(`Testnet v8 deployment complete. Market ready: ${ready}. Manifest: ${outputPath}\n`);
