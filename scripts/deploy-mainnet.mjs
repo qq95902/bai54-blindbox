@@ -65,6 +65,7 @@ function writeRuntimeConfig(record, apiBaseUrl) {
     apiBaseUrl,
     contracts: {
       game: record.game,
+      metadataRenderer: record.metadataRenderer,
       bai: record.baiToken,
       freeDrop: record.freeDrop,
       usdt: record.quoteToken,
@@ -257,8 +258,9 @@ if (record) {
   record = { status: 'DEPLOYING', startedAt: new Date().toISOString(), ...plan, contracts: {} };
   save(record);
 }
+const metadataRenderer = await deployContract(signer, 'BAICardMetadataRenderer', [], record, 'metadataRenderer');
 const game = await deployContract(signer, 'BAIBlindBoxGameV2', [quoteToken, coordinatorAddress, keyHash,
-  subscriptionId, confirmations, callbackGas, routerAddress], record, 'game');
+  subscriptionId, confirmations, callbackGas, routerAddress, await metadataRenderer.getAddress()], record, 'game');
 const freeDrop = await deployContract(signer, 'BAIFreeDrop', [await game.getAddress(), coordinatorAddress,
   keyHash, subscriptionId, confirmations, callbackGas], record, 'freeDrop');
 const router = new Contract(routerAddress, [
