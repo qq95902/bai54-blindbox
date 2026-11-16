@@ -20,6 +20,8 @@ The testnet liquidity manager uses a 15-second TWAP, 5-second observation interv
 
 ## Build and deploy
 
-Install dependencies with `npm ci`, compile with `npm run compile`, and run the local sandbox with `npm run sandbox:simulate`. The testnet deployment script reads `.env.testnet`, `.env`, or the existing adjacent contract workspace `.env`; keep private keys out of Git. Run `npm run deploy:testnet:check` before `npm run deploy:testnet`. The script refuses to overwrite an existing v6 record and verifies the chain ID, deployer, balances, VRF subscription, and contract wiring.
+NFT metadata is generated on-chain by `BAICardMetadataRenderer`: sealed boxes expose a pending state, and revealed cards expose their asset, rarity, style, result, Beijing day, and embedded SVG image. Four card skins are represented as distinct metadata traits. The public v6 game contract predates this renderer; the v7 deployment script deploys the renderer and links it into the game contract.
+
+Install dependencies with `npm ci`, compile with `npm run compile`, and run the local sandbox with `npm run sandbox:simulate`. The testnet deployment script reads `.env.testnet`, `.env`, or the existing adjacent contract workspace `.env`; keep private keys out of Git. Run `npm run deploy:testnet:check` before `npm run deploy:testnet`. The v7 script writes a separate v7 deployment record and verifies the chain ID, deployer, balances, VRF subscription, and contract wiring.
 
 See [`README-mainnet-deploy.md`](README-mainnet-deploy.md) for the separate mainnet deployment checklist. Never put private keys or seed phrases in this repository.
