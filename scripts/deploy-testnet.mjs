@@ -108,13 +108,13 @@ if (previous) {
       previous.external?.vrfCoordinator?.toLowerCase() !== coordinator.toLowerCase() ||
       previous.external?.vrfSubscriptionId !== subscriptionId.toString() ||
       previous.rules?.directReferralUSDT !== newPlan.rules.directReferralUSDT) {
-    throw new Error('Existing v5 deployment record does not match current testnet settings; refusing to continue');
+    throw new Error('Existing testnet deployment record does not match the current deployment settings; refusing to continue');
   }
 }
 const plan = previous ? { ...newPlan, ...previous, external: { ...newPlan.external, ...previous.external }, contracts: { ...previous.contracts }, transactions: { ...previous.transactions } } : newPlan;
 process.stdout.write(`${JSON.stringify({ ...plan, deployerBalance: { tBNB: formatUnits(nativeBalance, 18), testUSDT: formatUnits(usdtBalance, Number(usdtDecimals)) } }, null, 2)}\n`);
 if (!execute) {
-  process.stdout.write('Read-only preflight passed. No transaction sent. Run npm run deploy:testnet to deploy v5.\n');
+  process.stdout.write('Read-only preflight passed. No transaction sent. Run npm run deploy:testnet to deploy testnet v6.\n');
   process.exit(0);
 }
 
