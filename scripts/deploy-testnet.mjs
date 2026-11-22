@@ -75,6 +75,15 @@ const routerAddress = address('BSC_TESTNET_ROUTER_ADDRESS', required('BSC_TESTNE
 const coordinator = address('BSC_TESTNET_VRF_COORDINATOR', required('BSC_TESTNET_VRF_COORDINATOR', defaults.coordinator));
 const treasury = address('BSC_TESTNET_OPERATIONS_TREASURY', required('BSC_TESTNET_OPERATIONS_TREASURY'));
 const purchaseKeeper = address('BSC_TESTNET_PURCHASE_KEEPER_ADDRESS', required('BSC_TESTNET_PURCHASE_KEEPER_ADDRESS'));
+if (purchaseKeeper === '0x0000000000000000000000000000000000000000') {
+  throw new Error('BSC_TESTNET_PURCHASE_KEEPER_ADDRESS must be a non-zero dedicated Keeper wallet');
+}
+if (purchaseKeeper.toLowerCase() === signerAddress.toLowerCase()) {
+  throw new Error('Purchase Keeper must use a dedicated wallet, separate from the deployment wallet');
+}
+if (purchaseKeeper.toLowerCase() === treasury.toLowerCase()) {
+  throw new Error('Purchase Keeper must use a dedicated wallet, separate from the operations treasury');
+}
 const publicApiInput = required('PUBLIC_API_BASE_URL');
 const walletConnectProjectId = required('WALLETCONNECT_PROJECT_ID');
 if (!/^[a-f\d]{32}$/i.test(walletConnectProjectId)) throw new Error('WALLETCONNECT_PROJECT_ID must be the 32-character public project ID from WalletConnect Cloud');
