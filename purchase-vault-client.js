@@ -31,7 +31,7 @@
     const challengeResponse = await fetchImpl(`${base}/v1/deposit-challenge`, requestOptions);
     const challenge = await challengeResponse.json().catch(() => ({}));
     if (!challengeResponse.ok || Number(challenge.chainId) !== Number(chainId) ||
-        !/^[0-9a-f]{64}$/i.test(String(challenge.challengeId || '')) || typeof challenge.message !== 'string' ||
+        !/^[A-Za-z0-9_-]{1,1900}\.[0-9a-f]{64}$/i.test(String(challenge.challengeId || '')) || typeof challenge.message !== 'string' ||
         !Number.isFinite(Date.parse(challenge.expiresAt)) || Date.parse(challenge.expiresAt) <= Date.now()) {
       const message = errorMessages[challenge.error];
       throw new Error(message ? message[language === 'en' ? 1 : 0] : `收款地址验证请求失败（${challenge.error || `HTTP ${challengeResponse.status}`}）；本次未扣款。 / Could not create the deposit-address challenge; no payment was sent.`);
