@@ -150,6 +150,15 @@ const routerAddress = address('PANCAKE_V2_ROUTER', env.PANCAKE_V2_ROUTER || defa
 const coordinatorAddress = address('VRF_COORDINATOR', env.VRF_COORDINATOR || defaults.coordinator);
 const treasury = address('OPERATIONS_TREASURY', treasuryInput);
 const purchaseKeeper = address('PURCHASE_KEEPER_ADDRESS', purchaseKeeperInput);
+if (purchaseKeeper === '0x0000000000000000000000000000000000000000') {
+  throw new Error('PURCHASE_KEEPER_ADDRESS must be a non-zero dedicated Keeper wallet');
+}
+if (purchaseKeeper.toLowerCase() === deployer.toLowerCase()) {
+  throw new Error('Purchase Keeper must use a dedicated wallet, separate from the deployment wallet');
+}
+if (purchaseKeeper.toLowerCase() === treasury.toLowerCase()) {
+  throw new Error('Purchase Keeper must use a dedicated wallet, separate from the operations treasury');
+}
 const lpBeneficiaryInput = env.LP_BENEFICIARY || '';
 const subscriptionId = BigInt(subscriptionInput);
 if (subscriptionId <= 0n) throw new Error('VRF_SUBSCRIPTION_ID must be positive');
