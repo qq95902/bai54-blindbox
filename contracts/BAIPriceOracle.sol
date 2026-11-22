@@ -85,7 +85,7 @@ contract BAIPriceOracle {
         minPoolValueUsd = minPoolValueUsd_;
     }
 
-    /// @notice Record at most one cumulative-price observation per hour.
+    /// @notice Record at most one cumulative-price observation per configured interval.
     function update() external {
         uint64 hourId = uint64(block.timestamp / observationInterval);
         if (observationCount != 0 && hourId == lastObservationHour) return;

@@ -8,20 +8,22 @@ window.BAI_CONFIG = Object.freeze({
     "decimals": 18
   },
   "rpcUrls": [
-    "https://data-seed-prebsc-1-s1.binance.org:8545/"
+    "https://bsc-testnet-dataseed.bnbchain.org",
+    "https://bsc-testnet-rpc.publicnode.com"
   ],
   "blockExplorerUrls": [
     "https://testnet.bscscan.com"
   ],
-  "readRpcUrl": "https://data-seed-prebsc-1-s1.binance.org:8545/",
+  "readRpcUrl": "https://bsc-testnet-dataseed.bnbchain.org",
   "apiBaseUrl": "",
+  "walletConnectProjectId": "",
   "contracts": {
-    "game": "0xD4fA534CEced391E2A39f5Ce21c15E478595B2Fe",
-    "bai": "0xA422A766991b1a05999fda8549D2244A81Cd7933",
-    "freeDrop": "0xD3c48B4C61b10018D0858DDD4701D4181BD479A7",
-    "metadataRenderer": "0xf951eDE8338E1BBc846407BCB5092618C743a349",
+    "game": "0xDE0dddDAdC48C6FD17CD9B345b2B7016073FBaD4",
+    "bai": "0x6cc7834Ecfc250aFDdb34eFd3b4FE84eF26Ea213",
+    "freeDrop": "0x5E77365Fd6D417bdf8FcC062e9F30931F1212B08",
+    "metadataRenderer": "0xB3ce5B1ab45e6366A5F178Cc9c7081a080a42C57",
     "usdt": "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd",
     "router": "0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3",
-    "liquidityManager": "0x4A100113176ea0b51EE232e2E03e2Ca1d79248cC"
+    "liquidityManager": "0xfF199F37cAc5ccB36EE15495681c5E6a1f20690d"
   }
 });

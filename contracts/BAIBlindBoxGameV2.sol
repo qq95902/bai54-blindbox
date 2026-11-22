@@ -8,13 +8,6 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import {ImmutableVRFConsumer} from "./ImmutableVRFConsumer.sol";
 import {VRFV2PlusClient} from "./vendor/VRFV2PlusClient.sol";
 
-interface IBAIV2RouterForGame {
-    function WETH() external view returns (address);
-    function getAmountsIn(uint256 amountOut, address[] calldata path) external view returns (uint256[] memory amounts);
-    function swapETHForExactTokens(uint256 amountOut, address[] calldata path, address to, uint256 deadline)
-        external payable returns (uint256[] memory amounts);
-}
-
 interface IBAIMarketReadiness {
     function marketReady() external view returns (bool);
     function priceOracle() external view returns (address);
@@ -25,6 +18,10 @@ interface IBAIMarketReadiness {
 
 interface IBAIRewardOracle {
     function consultUSDT(uint256 usdtAmount) external view returns (uint256 baiAmount);
+}
+
+interface IBAIPurchaseProcessorIdentity {
+    function keeper() external view returns (address);
 }
 
 interface IBAIRewardToken {
@@ -68,8 +65,9 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
     uint8 public constant TIER_SSSR = 4;
     uint256 public constant SYNTHESIS_TIMEOUT = 7 days;
     uint256 public constant VRF_REQUEST_RETRY_DELAY = 1 days;
+    /// @notice Bounds native-payment VRF usage shared with daily draws.
+    uint8 private constant MAX_SYNTHESIS_REQUESTS_PER_BEIJING_DAY = 50;
     uint8 public constant BOX_UNREVEALED = type(uint8).max;
-    uint256 private constant ALL_FACE_BITS = (uint256(1) << 54) - 1;
 
     error InvalidAddress();
     error InvalidAmount();
@@ -84,7 +82,7 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
     error DrawNotFinalized();
     error NotWinningBox();
     error AlreadyClaimed();
-    error WinningCardLocked();
+    error UnrevealedBoxLocked();
     error InvalidReferrer();
     error OnlyDeployer();
     error LiquidityProcessorAlreadySet();
@@ -107,6 +105,9 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
     error SelfPurchase();
     error SlippageExceeded();
     error UnexpectedBNB();
+    error PurchaseProcessorAlreadySet();
+    error OnlyPurchaseProcessor();
+    error OnlyVrfRetryOperator();
 
     struct Round {
         uint64 salesClose;
@@ -146,9 +147,9 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
     uint256 public immutable vrfSubscriptionId;
     uint16 public immutable vrfRequestConfirmations;
     uint32 public immutable vrfCallbackGasLimit;
-    IBAIV2RouterForGame public immutable router;
     IBAICardMetadataRenderer public immutable metadataRenderer;
     address public liquidityProcessor;
+    address public purchaseProcessor;
     uint256 public immutable boxPrice;
     uint256 public immutable usdtUnit;
     uint256 public nextTokenId = 1;
@@ -186,7 +187,6 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
     mapping(uint64 dayId => uint256 amount) public referralUSDTByRound;
     mapping(uint64 dayId => uint256[] tokenIds) private roundBoxes;
     mapping(uint256 tokenId => uint64 dayId) public boxRound;
-    mapping(uint256 tokenId => address buyer) public purchaseBuyer;
     mapping(uint256 tokenId => uint8 face) public revealedFace;
     mapping(uint256 tokenId => bool winning) public isWinningBox;
     mapping(uint256 tokenId => bool claimed) public prizeClaimed;
@@ -195,6 +195,7 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
     mapping(uint256 tokenId => bool synthesized) public isSynthesized;
     mapping(uint256 synthesisId => Synthesis) public syntheses;
     mapping(uint256 synthesisId => uint256[4] tokenIds) private synthesisCards;
+    mapping(uint64 dayId => uint8 count) private synthesisRequestsByDay;
     mapping(address account => uint64 weight) public dividendWeightOf;
     uint64 public totalDividendWeight;
     mapping(address account => WeightCheckpoint[]) private dividendWeightCheckpoints;
@@ -247,13 +248,12 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
         uint256 subscriptionId_,
         uint16 confirmations_,
         uint32 callbackGasLimit_,
-        address router_,
         address metadataRenderer_
     )
         ERC721("BAI Blind Box", "BAIBOX")
         ImmutableVRFConsumer(coordinator_)
     {
-        if (usdt_ == address(0) || router_ == address(0) || metadataRenderer_ == address(0) ||
+        if (usdt_ == address(0) || metadataRenderer_ == address(0) ||
             metadataRenderer_.code.length == 0 || confirmations_ == 0 || callbackGasLimit_ == 0) {
             revert InvalidAddress();
         }
@@ -263,7 +263,6 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
         vrfSubscriptionId = subscriptionId_;
         vrfRequestConfirmations = confirmations_;
         vrfCallbackGasLimit = callbackGasLimit_;
-        router = IBAIV2RouterForGame(router_);
         metadataRenderer = IBAICardMetadataRenderer(metadataRenderer_);
         uint8 tokenDecimals = usdt.decimals();
         if (tokenDecimals > 18) revert InvalidAmount();
@@ -310,6 +309,14 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
         emit LiquidityProcessorSet(processor);
     }
 
+    /// @notice One-time trusted purchase processor for BNB and confirmed USDT deposits.
+    function setPurchaseProcessor(address processor) external {
+        if (msg.sender != deployer) revert OnlyDeployer();
+        if (purchaseProcessor != address(0)) revert PurchaseProcessorAlreadySet();
+        if (processor == address(0) || processor.code.length == 0 || nextTokenId != 1) revert InvalidAddress();
+        purchaseProcessor = processor;
+    }
+
     /// @notice Pay 10 USDT per box and receive the unopened box NFT atomically.
     function buyBoxes(uint8 amount, address referrer) external nonReentrant {
         uint256 totalCost = boxPrice * amount;
@@ -318,32 +325,12 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
         _recordPurchase(msg.sender, amount, referrer, totalCost);
     }
 
-    /// @notice Pay with native BNB; the router atomically swaps only the exact USDT cost.
-    /// @dev `maxBNBIn` caps slippage. Prize and liquidity accounting remain in USDT.
-    function buyBoxesWithBNB(uint8 amount, address referrer, uint256 maxBNBIn) external payable nonReentrant {
-        _checkPurchase(amount);
+    /// @notice Record a purchase paid by the trusted processor after a BNB swap or confirmed deposit.
+    function buyBoxesFromProcessor(address buyer, uint8 amount, address referrer) external nonReentrant {
+        if (msg.sender != purchaseProcessor || purchaseProcessor == address(0)) revert OnlyPurchaseProcessor();
         uint256 totalCost = boxPrice * amount;
-        address[] memory path = new address[](2);
-        path[0] = router.WETH();
-        path[1] = address(usdt);
-        uint256[] memory quote = router.getAmountsIn(totalCost, path);
-        if (quote.length != 2 || quote[0] > maxBNBIn || msg.value > maxBNBIn || msg.value < quote[0]) {
-            revert SlippageExceeded();
-        }
-        uint256[] memory amounts = router.swapETHForExactTokens{value: msg.value}(
-            totalCost, path, address(this), block.timestamp + 5 minutes
-        );
-        if (amounts.length != 2 || amounts[0] > maxBNBIn || amounts[0] > msg.value) revert SlippageExceeded();
-        uint256 refund = msg.value - amounts[0];
-        if (refund != 0) {
-            (bool refunded,) = payable(msg.sender).call{value: refund}("");
-            if (!refunded) revert UnexpectedBNB();
-        }
-        _recordPurchase(msg.sender, amount, referrer, totalCost);
-    }
-
-    receive() external payable {
-        if (msg.sender != address(router)) revert UnexpectedBNB();
+        _checkPurchase(amount);
+        _recordPurchase(buyer, amount, referrer, totalCost);
     }
 
     function _checkPurchase(uint8 amount) private view {
@@ -384,7 +371,6 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
         for (uint256 i; i < amount; ++i) {
             uint256 tokenId = nextTokenId++;
             boxRound[tokenId] = dayId;
-            purchaseBuyer[tokenId] = buyer;
             revealedFace[tokenId] = BOX_UNREVEALED;
             roundBoxes[dayId].push(tokenId);
             _safeMint(buyer, tokenId);
@@ -399,10 +385,19 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
         if (round.boxCount == 0 || round.salesClose == 0) revert RoundNotFound();
         if (block.timestamp < round.salesClose) revert SalesStillOpen();
         if (round.randomnessLoaded || roundRandomnessFulfilled[dayId]) revert DrawAlreadyRequested();
-        if (
-            round.drawRequested &&
-            block.timestamp < uint256(round.drawRequestedAt) + VRF_REQUEST_RETRY_DELAY
-        ) revert DrawAlreadyRequested();
+        if (round.drawRequested) {
+            if (block.timestamp < uint256(round.drawRequestedAt) + VRF_REQUEST_RETRY_DELAY) {
+                revert DrawAlreadyRequested();
+            }
+            // A replacement request charges the project's VRF subscription.
+            // Keep the initial request permissionless, but only allow the
+            // deployer or configured purchase Keeper to retry during an outage.
+            if (msg.sender != deployer &&
+                (purchaseProcessor == address(0) ||
+                    msg.sender != IBAIPurchaseProcessorIdentity(purchaseProcessor).keeper())) {
+                revert OnlyVrfRetryOperator();
+            }
+        }
         round.drawRequested = true;
         round.drawRequestedAt = uint64(block.timestamp);
         uint256 requestId = _requestRandomWord();
@@ -590,12 +585,29 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
             if (
                 _ownerOf(tokenId) != msg.sender ||
                 revealedFace[tokenId] == BOX_UNREVEALED ||
-                isWinningBox[tokenId]
+                (isWinningBox[tokenId] && !prizeClaimed[tokenId]) ||
+                (!isWinningBox[tokenId] && !isSynthesized[tokenId] && !baiRewardClaimed[tokenId])
             ) revert InvalidSynthesis();
+            // Paid box losers reserve part of the BAI inventory until claimed.
+            // Burning one before that claim would strand the corresponding liability.
             for (uint256 j; j < i; ++j) {
                 if (tokenIds[j] == tokenId) revert InvalidSynthesis();
             }
             if (cardTier[tokenId] > highestInputTier) highestInputTier = cardTier[tokenId];
+        }
+
+        uint64 dayId = _beijingDayId(block.timestamp);
+        bytes4 invalidSynthesisSelector = InvalidSynthesis.selector;
+        assembly ("memory-safe") {
+            mstore(0x00, dayId)
+            mstore(0x20, synthesisRequestsByDay.slot)
+            let slot := keccak256(0x00, 0x40)
+            let count := sload(slot)
+            if iszero(lt(count, 50)) {
+                mstore(0x00, shl(224, invalidSynthesisSelector))
+                revert(0x00, 0x04)
+            }
+            sstore(slot, add(count, 1))
         }
 
         uint8 outputTier = highestInputTier >= TIER_SSSR ? TIER_SSSR : highestInputTier + 1;
@@ -627,7 +639,7 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
     function completeSynthesis(uint256 synthesisId) external nonReentrant {
         Synthesis storage item = syntheses[synthesisId];
         if (item.owner == address(0) || item.cancelled) revert InvalidSynthesis();
-        if (item.completed) revert SynthesisAlreadyCompleted();
+        if (item.completed) revert InvalidSynthesis();
         if (!forgeRandomnessFulfilled[synthesisId]) revert SynthesisNotReady();
 
         uint256 seed = forgeSeed[synthesisId];
@@ -654,7 +666,7 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
     function cancelExpiredSynthesis(uint256 synthesisId) external nonReentrant {
         Synthesis storage item = syntheses[synthesisId];
         if (item.owner == address(0) || item.cancelled) revert InvalidSynthesis();
-        if (item.completed) revert SynthesisAlreadyCompleted();
+        if (item.completed) revert InvalidSynthesis();
         if (forgeRandomnessFulfilled[synthesisId]) revert SynthesisNotReady();
         if (block.timestamp < uint256(item.requestedAt) + SYNTHESIS_TIMEOUT) revert SynthesisNotExpired();
 
@@ -754,7 +766,7 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
     function listCard(uint256 tokenId, uint256 priceUSDT) external nonReentrant {
         if (priceUSDT == 0 || priceUSDT > type(uint128).max) revert InvalidListing();
         if (_ownerOf(tokenId) != msg.sender || revealedFace[tokenId] == BOX_UNREVEALED ||
-            isWinningBox[tokenId] || isSynthesized[tokenId] || listings[tokenId].active) revert InvalidListing();
+            listings[tokenId].active) revert InvalidListing();
         listings[tokenId] = Listing(msg.sender, uint128(priceUSDT), true);
         _transfer(msg.sender, address(this), tokenId);
         emit ListingCreated(tokenId, msg.sender, priceUSDT);
@@ -795,14 +807,15 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
         }
         mask |= uint256(1) << 52; // BTC special face is always included.
         mask |= uint256(1) << 53; // ETH special face is always included.
-        return mask & ALL_FACE_BITS;
+        // The loop only sets face bits 0..51; the two special faces are 52 and 53.
+        return mask;
     }
 
     function _beijingDayId(uint256 timestamp) private pure returns (uint64) {
         return uint64((timestamp + BEIJING_OFFSET) / 1 days);
     }
 
-    /// @dev Winning cards stay in the owner's wallet and cannot be transferred.
+    /// @dev Unrevealed boxes cannot be transferred; every revealed card remains tradeable.
     function _update(address to, uint256 tokenId, address auth)
         internal
         override
@@ -810,8 +823,7 @@ contract BAIBlindBoxGameV2 is ERC721, ReentrancyGuard, ImmutableVRFConsumer {
     {
         address from = _ownerOf(tokenId);
         if (from != address(0) && to != address(0)) {
-            if (revealedFace[tokenId] == BOX_UNREVEALED) revert WinningCardLocked();
-            if (isWinningBox[tokenId]) revert WinningCardLocked();
+            if (revealedFace[tokenId] == BOX_UNREVEALED) revert UnrevealedBoxLocked();
         }
         bool dividendEligible = cardTier[tokenId] >= TIER_SR;
         if (dividendEligible && from != address(0) && from != address(this)) {

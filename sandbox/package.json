@@ -1,0 +1,12 @@
+{
+  "name": "bai-local-sandbox",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22 <24"
+  },
+  "devDependencies": {
+    "ganache": "7.9.2"
+  }
+}

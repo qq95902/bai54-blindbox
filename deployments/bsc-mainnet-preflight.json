@@ -1,0 +1,59 @@
+{
+  "status": "DEPLOYMENT_TOOLING_READY_CONFIGURATION_REQUIRED",
+  "network": "BNB Smart Chain Mainnet",
+  "chainId": 56,
+  "rpcUrlEnv": "BSC_MAINNET_RPC_URL",
+  "officialPublicRpcFallback": "https://bsc-dataseed.bnbchain.org",
+  "explorer": "https://bscscan.com",
+  "externalContracts": {
+    "pancakeSwapV2Router": "0x10ED43C718714eb63d5aA57B78B54704E256024E",
+    "vrfCoordinatorV2Plus": "0xd691f04bc0C9a24Edb78af9E005Cf85768F694C9",
+    "vrfKeyHash200Gwei": "0x130dba50ad435d4ecc214aad0d5820474137bd68e7e77724144f27c3c377d3d4",
+    "vrfKeyHash500Gwei": "0xeb0f72532fed5c94b4caf7b49caf454b35a729608a441101b9269efb7efe2c6c",
+    "vrfKeyHash1000Gwei": "0xb94a4fdb12830e15846df59b27d7c5d92c9c24c10cf6ae49655681ba560848dd"
+  },
+  "vrf": {
+    "version": "2.5",
+    "paymentMode": "native BNB",
+    "requestConfirmations": 3,
+    "callbackGasLimit": null,
+    "subscriptionId": null,
+    "subscriptionMustBeCreatedAndFundedBeforeDeployment": true,
+    "subscriptionOwnerMustBeDeployer": true
+  },
+  "quoteAsset": {
+    "selected": true,
+    "candidate": "Binance-Peg BSC-USD",
+    "address": "0x55d398326f99059fF775485246999027B3197955",
+    "decimals": 18,
+    "note": "Configured as Binance-Peg BSC-USD, 18 decimals. Player-facing UI should call it BSC-USD or clearly identify the bridged token."
+  },
+  "projectAddresses": {
+    "operationsTreasury": null,
+    "lpBeneficiary": null,
+    "game": null,
+    "freeDrop": null,
+    "baiToken": null,
+    "liquidityManager": null,
+    "baiQuotePair": null
+  },
+  "deploymentChecks": {
+    "solidityBuildVerified": true,
+    "deploymentScriptsPresent": true,
+    "quoteAssetConfirmed": true,
+    "vrfSubscriptionFunded": false,
+    "productionKeeperConfigured": false,
+    "frontendMainnetConfigApplied": false,
+    "walletPaymentFlowVerified": false,
+    "contractAuditComplete": false
+  },
+  "deploymentBlocked": true,
+  "blockers": [
+    "Mainnet RPC, deployer key file, operations treasury, VRF subscription ID, callback gas limit, initial BSC-USD liquidity, and minimum pool value must be supplied in the deployment shell.",
+    "The deployer must own a funded native-payment VRF v2.5 subscription. The read-only preflight has not been run against the owner's mainnet RPC and subscription.",
+    "The purchase contract flow is buyBoxes (ERC-20 allowance plus purchase) or buyBoxesWithBNB. Plain BSC-USD transfers do not mint a box; player-facing purchase UX must match the contract call.",
+    "Production keeper/API/database hosting and monitoring are not provisioned. The hourly keeper must mature the 24-hour TWAP before sales can open.",
+    "The public player HTML still hard-codes BSC Testnet (Chain ID 97) addresses and labels; it must be switched to generated mainnet addresses and wallet transaction flows after deployment.",
+    "The mainnet contracts have not been independently audited, and no mainnet deployment has been sent."
+  ]
+}
