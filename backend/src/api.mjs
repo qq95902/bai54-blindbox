@@ -19,6 +19,7 @@ export function createApiServer({ config, pool, providers, publicOrigins: config
   const publicOrigins = new Set(configuredOrigins || (process.env.PUBLIC_SITE_ORIGINS || 'https://qq95902.github.io')
     .split(',').map((origin) => origin.trim()).filter(Boolean));
   const cardReadsByIp = new Map();
+  const statusReadsByIp = new Map();
   const depositAddressReadsByIp = new Map();
   let challengeCleanupCounter = 0;
 
@@ -132,6 +133,11 @@ async function readJsonBody(req, maximumBytes = 4096) {
       }
     }
     if (req.method === 'GET' && pathname === '/v1/status') {
+      const now = Date.now();
+      const ip = resolveClientIp(req.socket.remoteAddress, req.headers['x-forwarded-for'], config.trustedProxyIps);
+      if (!consumeIpRateLimit(statusReadsByIp, ip, now, { limit: 30 })) {
+        status = 429; return json(res, status, { error: 'rate_limited' });
+      }
       const chain = await getChainStatus();
       const { rows } = await pool.query(
         `SELECT service_name, instance_id, heartbeat_at, details
