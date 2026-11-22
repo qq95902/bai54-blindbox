@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { AbiCoder, Wallet } from 'ethers';
+import { issueDepositChallenge } from '../src/deposit-challenge.mjs';
 import { createApiServer } from '../src/api.mjs';
 import { instrumentClientQuery } from '../src/db.mjs';
 
@@ -10,25 +11,17 @@ let mode = { transfer: true, registered: false, terminal: null, senderMismatch: 
 const buyerWallet = Wallet.createRandom();
 const buyerAddress = buyerWallet.address;
 const challenges = new Map();
+const challengeSecret = 'sandbox-deposit-challenge-secret-'.padEnd(64, 'x');
+let challengeWrites = 0;
 let vaultRegistryWrites = 0;
 const pool = {
   async query(sql) {
     if (mode.databaseDown) throw Object.assign(new Error('simulated database unavailable'), { code: 'ECONNREFUSED' });
     if (sql.includes('INSERT INTO wallet_signing_challenges')) {
+      challengeWrites++;
       const [challengeId, chainId, buyer, referrer, origin, message, expiresAt] = arguments[1];
-      challenges.set(challengeId, { challenge_id: challengeId, chain_id: chainId, buyer_address: buyer, referrer_address: referrer, origin, message, expires_at: expiresAt, used_at: null });
-      return { rowCount: 1, rows: [] };
-    }
-    if (sql.includes('SELECT buyer_address,referrer_address,origin,message,expires_at,used_at')) {
-      const challenge = challenges.get(arguments[1][0]);
-      return { rows: challenge ? [challenge] : [] };
-    }
-    if (sql.includes('UPDATE wallet_signing_challenges SET used_at')) {
-      const [challengeId, chainId, buyer, referrer] = arguments[1];
-      const challenge = challenges.get(challengeId);
-      if (!challenge || challenge.chain_id !== chainId || challenge.buyer_address !== buyer || challenge.referrer_address !== referrer ||
-          challenge.used_at || new Date(challenge.expires_at).getTime() <= Date.now()) return { rowCount: 0, rows: [] };
-      challenge.used_at = new Date().toISOString();
+      if (challenges.has(challengeId)) return { rowCount: 0, rows: [] };
+      challenges.set(challengeId, { challenge_id: challengeId, chain_id: chainId, buyer_address: buyer, referrer_address: referrer, origin, message, expires_at: expiresAt, used_at: new Date().toISOString() });
       return { rowCount: 1, rows: [] };
     }
     if (sql.includes('INSERT INTO purchase_vaults')) { vaultRegistryWrites++; return { rowCount: mode.vaultConflict ? 0 : 1, rows: [] }; }
@@ -80,7 +73,7 @@ const config = {
     game: '0x5555555555555555555555555555555555555555',
     liquidityManager: '0x6666666666666666666666666666666666666666'
   },
-  trustedProxyIps: [], metricsToken: ''
+  trustedProxyIps: [], metricsToken: '', depositChallengeSecret: challengeSecret
 };
 const siteOrigin = 'https://bai.example';
 const server = createApiServer({ config, pool, providers, publicOrigins: [siteOrigin] });
@@ -154,13 +147,16 @@ try {
 
   let issued = await getDepositChallenge();
   check(issued.response.status, 200, 'deposit challenge is issued without registering a deposit vault');
-  check(challenges.size, 1, 'unsigned challenge is isolated in the short-lived challenge table, not the indexer vault registry');
+  check(challenges.size, 0, 'unsigned challenge issuance stays stateless and cannot grow database rows');
+  check(challengeWrites, 0, 'unsigned requests perform no challenge database writes');
   check(vaultRegistryWrites, 0, 'unsigned requests cannot add recipients to the indexer monitored vault registry');
   response = await submitDepositChallenge({ challenge: issued.challenge, signer: Wallet.createRandom() });
   check(response.status, 401, 'a signature from a different wallet cannot register the buyer vault');
+  check(challengeWrites, 0, 'invalid signatures do not create replay rows');
   response = await submitDepositChallenge({ challenge: issued.challenge });
   check(response.status, 200, 'buyer signature registers the chain-derived buyer-specific vault');
   check(vaultRegistryWrites, 1, 'a valid one-time buyer signature creates exactly one monitored deposit-vault record');
+  check(challengeWrites, 1, 'only a valid wallet signature writes the one-time replay guard');
   const addressBody = await response.json();
   check(`${response.status}:${addressBody.vault}:${addressBody.chainId}`, '200:0x7777777777777777777777777777777777777777:97',
     'deposit-address API returns the chain-derived buyer-specific vault');
@@ -172,10 +168,17 @@ try {
   issued = await getDepositChallenge();
   response = await submitDepositChallenge({ challenge: issued.challenge, referrer: '0x2222222222222222222222222222222222222222' });
   check(response.status, 409, 'signature is bound to the exact referrer selected in the challenge');
+  const writesBeforeInvalidTokens = challengeWrites;
+  const expiredChallenge = issueDepositChallenge({ secret: challengeSecret, chainId: 97, buyer: buyerAddress,
+    referrer: '0x1111111111111111111111111111111111111111', origin: siteOrigin, now: Date.now() - 6 * 60_000 });
+  response = await submitDepositChallenge({ challenge: expiredChallenge });
+  check(response.status, 409, 'expired stateless challenges cannot register a vault');
   issued = await getDepositChallenge();
-  challenges.get(issued.challenge.challengeId).expires_at = new Date(Date.now() - 1000).toISOString();
-  response = await submitDepositChallenge({ challenge: issued.challenge });
-  check(response.status, 409, 'expired deposit challenges cannot register a vault');
+  const tamperedChallenge = { ...issued.challenge, challengeId: `${issued.challenge.challengeId.slice(0, -1)}${issued.challenge.challengeId.endsWith('0') ? '1' : '0'}` };
+  response = await submitDepositChallenge({ challenge: tamperedChallenge });
+  check(response.status, 409, 'tampered challenge tokens fail HMAC validation before database access');
+  check(challengeWrites, writesBeforeInvalidTokens, 'expired and tampered tokens do not write replay rows');
+  check(challenges.size, 1, 'expired and tampered tokens do not grow the replay table');
   response = await requestDepositAddress(buyerAddress, buyerAddress);
   check(response.status, 400, 'deposit-address API rejects self-referral');
   response = await requestDepositAddress(buyerAddress, '0x2222222222222222222222222222222222222222');

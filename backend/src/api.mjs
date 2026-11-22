@@ -1,5 +1,5 @@
 import http from 'node:http';
-import { randomBytes, timingSafeEqual } from 'node:crypto';
+import { timingSafeEqual } from 'node:crypto';
 import { ethers } from 'ethers';
 import { loadConfig } from './config.mjs';
 import { createPool, migrate, heartbeat } from './db.mjs';
@@ -7,6 +7,7 @@ import { verifyChainAndContracts } from './chain.mjs';
 import { errorCode, instanceId, instrumentRpc, log, requestId, withRequestContext } from './logger.mjs';
 import { resolveClientIp } from './client-ip.mjs';
 import { consumeIpRateLimit } from './ip-rate-limit.mjs';
+import { issueDepositChallenge, verifyDepositChallenge } from './deposit-challenge.mjs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { managerStatusAbi } from './abis.mjs';
@@ -190,62 +191,39 @@ async function readJsonBody(req, maximumBytes = 4096) {
           status = 503;
           return json(res, status, { error: 'public_site_origin_not_configured' });
         }
-        const issuedAt = new Date(now).toISOString();
-        const expiresAt = new Date(now + 5 * 60_000).toISOString();
-        const challengeId = randomBytes(32).toString('hex');
-        const message = [
-          'BAI Blind Box',
-          'Action: Create a buyer-bound USDT deposit address',
-          `Origin: ${requestOrigin}`,
-          `Buyer: ${normalizedBuyer}`,
-          `Referrer: ${normalizedReferrer}`,
-          `Chain ID: ${config.chainId}`,
-          `Nonce: ${challengeId}`,
-          `Issued At: ${issuedAt}`,
-          `Expires At: ${expiresAt}`
-        ].join('\n');
-        await pool.query(
-          `INSERT INTO wallet_signing_challenges
-           (challenge_id,chain_id,buyer_address,referrer_address,origin,message,expires_at)
-           VALUES($1,$2,$3,$4,$5,$6,$7)`,
-          [challengeId, config.chainId, normalizedBuyer.toLowerCase(), normalizedReferrer.toLowerCase(), requestOrigin, message, expiresAt]
-        );
-        challengeCleanupCounter++;
-        if (challengeCleanupCounter >= 128) {
-          challengeCleanupCounter = 0;
-          await pool.query(
-            `WITH expired AS (
-               SELECT challenge_id FROM wallet_signing_challenges
-               WHERE expires_at < now() - interval '1 day' LIMIT 500
-             )
-             DELETE FROM wallet_signing_challenges WHERE challenge_id IN (SELECT challenge_id FROM expired)`
-          );
-        }
         status = 200;
-        return json(res, status, { challengeId, message, expiresAt, chainId: config.chainId });
+        return json(res, status, issueDepositChallenge({
+          secret: config.depositChallengeSecret,
+          chainId: config.chainId,
+          buyer: normalizedBuyer,
+          referrer: normalizedReferrer,
+          origin: requestOrigin,
+          now
+        }));
       }
 
       const challengeId = body?.challengeId || '';
       const signature = body?.signature || '';
-      if (!/^[0-9a-f]{64}$/i.test(challengeId) || !/^0x[0-9a-f]{130}$/i.test(signature)) {
+      if (typeof signature !== 'string' || !/^0x[0-9a-f]{130}$/i.test(signature)) {
         status = 400;
         return json(res, status, { error: 'valid_deposit_signature_required' });
       }
-      const challengeResult = await pool.query(
-        `SELECT buyer_address,referrer_address,origin,message,expires_at,used_at
-         FROM wallet_signing_challenges WHERE challenge_id=$1 AND chain_id=$2 LIMIT 1`,
-        [challengeId, config.chainId]
-      );
-      const challenge = challengeResult.rows[0];
-      if (!challenge || challenge.used_at || new Date(challenge.expires_at).getTime() <= now ||
-          challenge.buyer_address.toLowerCase() !== normalizedBuyer.toLowerCase() ||
-          challenge.referrer_address.toLowerCase() !== normalizedReferrer.toLowerCase()) {
-        status = 409;
-        return json(res, status, { error: 'deposit_signature_expired_or_mismatched' });
-      }
-      if (origin && (!publicOrigins.has(origin) || challenge.origin !== origin)) {
+      if (typeof origin !== 'string' || !publicOrigins.has(origin)) {
         status = 403;
         return json(res, status, { error: 'deposit_signature_origin_mismatch' });
+      }
+      const challenge = verifyDepositChallenge({
+        secret: config.depositChallengeSecret,
+        challengeId,
+        chainId: config.chainId,
+        buyer: normalizedBuyer,
+        referrer: normalizedReferrer,
+        origin,
+        now
+      });
+      if (!challenge) {
+        status = 409;
+        return json(res, status, { error: 'deposit_signature_expired_or_mismatched' });
       }
       let recoveredAddress;
       try { recoveredAddress = ethers.verifyMessage(challenge.message, signature); }
@@ -276,14 +254,27 @@ async function readJsonBody(req, maximumBytes = 4096) {
       }
       const vault = await processor.predictVault(normalizedBuyer, normalizedReferrer);
       const consumed = await pool.query(
-        `UPDATE wallet_signing_challenges SET used_at=now()
-         WHERE challenge_id=$1 AND chain_id=$2 AND buyer_address=$3 AND referrer_address=$4
-           AND used_at IS NULL AND expires_at > now()`,
-        [challengeId, config.chainId, normalizedBuyer.toLowerCase(), normalizedReferrer.toLowerCase()]
+        `INSERT INTO wallet_signing_challenges
+         (challenge_id,chain_id,buyer_address,referrer_address,origin,message,expires_at,used_at)
+         VALUES($1,$2,$3,$4,$5,$6,$7,now())
+         ON CONFLICT (challenge_id) DO NOTHING`,
+        [challenge.challengeKey, config.chainId, normalizedBuyer.toLowerCase(), normalizedReferrer.toLowerCase(),
+          origin, challenge.message, challenge.expiresAt]
       );
       if (consumed.rowCount !== 1) {
         status = 409;
         return json(res, status, { error: 'deposit_signature_already_used' });
+      }
+      challengeCleanupCounter++;
+      if (challengeCleanupCounter >= 128) {
+        challengeCleanupCounter = 0;
+        await pool.query(
+          `WITH expired AS (
+             SELECT challenge_id FROM wallet_signing_challenges
+             WHERE expires_at < now() - interval '1 day' LIMIT 500
+           )
+           DELETE FROM wallet_signing_challenges WHERE challenge_id IN (SELECT challenge_id FROM expired)`
+        );
       }
       const { rowCount } = await pool.query(
         `INSERT INTO purchase_vaults(chain_id,processor_address,buyer_address,referrer_address,vault_address)

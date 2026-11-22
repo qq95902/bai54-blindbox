@@ -50,6 +50,10 @@ export function loadConfig(role) {
   };
   if (process.env.PURCHASE_PROCESSOR_ADDRESS?.trim()) {
     config.contracts.purchaseProcessor = address('PURCHASE_PROCESSOR_ADDRESS');
+    config.depositChallengeSecret = required('DEPOSIT_CHALLENGE_HMAC_SECRET');
+    if (Buffer.byteLength(config.depositChallengeSecret) < 32) {
+      throw new Error('DEPOSIT_CHALLENGE_HMAC_SECRET must contain at least 32 bytes');
+    }
     config.deploymentBlocks.purchaseProcessor = Number(
       process.env.PURCHASE_PROCESSOR_DEPLOYMENT_BLOCK || process.env.DEPLOYMENT_BLOCK || 0
     );
