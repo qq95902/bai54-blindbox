@@ -76,7 +76,8 @@ const config = {
   trustedProxyIps: [], metricsToken: '', depositChallengeSecret: challengeSecret
 };
 const siteOrigin = 'https://bai.example';
-const server = createApiServer({ config, pool, providers, publicOrigins: [siteOrigin] });
+const server = createApiServer({ config, pool, providers, publicOrigins: [siteOrigin],
+  marketStatusReader: async () => ({ ready: true, twapAgeSeconds: 10, observations: 4 }) });
 await new Promise((resolve, reject) => {
   server.once('error', reject);
   server.listen(0, '127.0.0.1', resolve);
@@ -250,6 +251,11 @@ try {
   }
   assert.ok(throttled, 'requests above 60 per IP per minute are rejected');
   assertions++;
+
+  const statusBurst = await Promise.all(Array.from({ length: 30 }, () => readiness('/v1/status')));
+  check(statusBurst.every((entry) => entry.status === 200), true, 'public chain status allows 30 requests per IP per minute');
+  response = await readiness('/v1/status');
+  check(response.status, 429, 'public chain status throttles the next request before downstream reads');
 } finally {
   process.stdout.write = originalWrite;
   await new Promise((resolve) => server.close(resolve));
