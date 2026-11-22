@@ -1,0 +1,41 @@
+name: Validate BAI code and simulations
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install root dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Install backend dependencies
+        run: npm ci --prefix backend --no-audit --no-fund
+      - name: Install sandbox dependencies
+        run: npm ci --prefix sandbox --no-audit --no-fund
+      - name: Compile contracts
+        run: npm run compile
+      - name: Build wallet bundle
+        run: npm run build:wallet
+      - name: Simulate local contract flows
+        run: npm run sandbox:simulate
+      - name: Simulate backend scenarios
+        run: npm run backend:sandbox:simulate

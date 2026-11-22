@@ -30,6 +30,7 @@ addSolidityFiles(contractsDir);
 const settings = {
   optimizer: { enabled: true, runs: 1 },
   viaIR: true,
+  evmVersion: 'cancun',
   metadata: { bytecodeHash: 'none' },
   outputSelection: { '*': { '*': ['abi', 'evm.bytecode.object', 'evm.deployedBytecode.object'] } }
 };
@@ -41,7 +42,8 @@ for (const item of result.errors || []) {
 }
 if (errors.length) process.exit(1);
 
-fs.rmSync(outputDir, { recursive: true, force: true });
+// Keep the generated directory in place: overwriting the current artifacts is
+// sufficient, and removing the whole directory can fail in restricted runners.
 fs.mkdirSync(outputDir, { recursive: true });
 const summary = { compiler: solc.version(), settings, contracts: {} };
 for (const [sourceName, contracts] of Object.entries(result.contracts || {})) {

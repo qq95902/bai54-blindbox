@@ -9,6 +9,11 @@ import {VRFV2PlusClient} from "./vendor/VRFV2PlusClient.sol";
 
 interface IBAIFreeDropPurchaseHistory {
     function hasPurchased(address account) external view returns (bool);
+    function purchaseProcessor() external view returns (address);
+}
+
+interface IBAIFreeDropPurchaseProcessorIdentity {
+    function keeper() external view returns (address);
 }
 
 interface IBAIFreeDropBurnable {
@@ -41,6 +46,7 @@ contract BAIFreeDrop is ReentrancyGuard, ImmutableVRFConsumer {
     error NothingToClaim();
     error OnlyDeployer();
     error BAITokenAlreadySet();
+    error OnlyVrfRetryOperator();
 
     IERC20 public baiToken;
     address public immutable deployer;
@@ -134,12 +140,22 @@ contract BAIFreeDrop is ReentrancyGuard, ImmutableVRFConsumer {
     }
 
     /// @notice Ask Chainlink VRF for one seed after the claim day has ended.
-    ///         If fulfillment is delayed for a day, anyone may request a replacement.
+    ///         If fulfillment is delayed for a day, only the deployer or configured purchase Keeper may retry.
     function requestDailyDraw(uint64 dayId) external {
         if (dayClaimers[dayId].length == 0 || block.timestamp < _dayStart(dayId + 1)) revert DrawNotReady();
         if (drawFulfilled[dayId]) revert RequestAlreadyActive();
-        if (drawRequested[dayId] && block.timestamp < uint256(drawRequestedAt[dayId]) + REQUEST_RETRY_DELAY) {
-            revert RequestAlreadyActive();
+        if (drawRequested[dayId]) {
+            if (block.timestamp < uint256(drawRequestedAt[dayId]) + REQUEST_RETRY_DELAY) {
+                revert RequestAlreadyActive();
+            }
+            // Replacement requests charge the project's VRF subscription.
+            // Do not let arbitrary callers drain it during a VRF outage.
+            address processor = game.purchaseProcessor();
+            if (msg.sender != deployer &&
+                (processor == address(0) ||
+                    msg.sender != IBAIFreeDropPurchaseProcessorIdentity(processor).keeper())) {
+                revert OnlyVrfRetryOperator();
+            }
         }
         drawRequested[dayId] = true;
         drawRequestedAt[dayId] = uint64(block.timestamp);

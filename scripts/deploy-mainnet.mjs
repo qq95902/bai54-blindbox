@@ -3,10 +3,10 @@ import path from 'node:path';
 import readline from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { execFileSync } from 'node:child_process';
-import { Contract, ContractFactory, JsonRpcProvider, Wallet, getAddress, parseUnits, formatEther, formatUnits } from 'ethers';
+import { Contract, ContractFactory, JsonRpcProvider, Wallet, getAddress, parseUnits, parseEther, formatEther, formatUnits } from 'ethers';
 
 const root = process.cwd();
-const outFile = path.join(root, 'deployments', 'bsc-mainnet-v1.json');
+const outFile = path.join(root, 'deployments', 'bsc-mainnet-v2.json');
 const args = new Set(process.argv.slice(2));
 const execute = args.has('--execute');
 for (const envFile of ['.env.mainnet', '.env']) {
@@ -63,11 +63,13 @@ function writeRuntimeConfig(record, apiBaseUrl) {
     blockExplorerUrls: ['https://bscscan.com'],
     readRpcUrl: 'https://bsc-dataseed.bnbchain.org',
     apiBaseUrl,
+    walletConnectProjectId: process.env.WALLETCONNECT_PROJECT_ID.trim(),
     contracts: {
       game: record.game,
       metadataRenderer: record.metadataRenderer,
       bai: record.baiToken,
       freeDrop: record.freeDrop,
+      purchaseProcessor: record.purchaseProcessor,
       usdt: record.quoteToken,
       router: record.pancakeV2Router,
       liquidityManager: record.liquidityManager
@@ -128,24 +130,41 @@ const rpcUrl = required('BSC_MAINNET_RPC_URL');
 const privateKeyFile = env.DEPLOYER_PRIVATE_KEY_FILE?.trim();
 if (!privateKeyFile && !env.DEPLOYER_PRIVATE_KEY?.trim()) missing.push('DEPLOYER_PRIVATE_KEY_FILE or DEPLOYER_PRIVATE_KEY');
 const treasuryInput = required('OPERATIONS_TREASURY');
+const purchaseKeeperInput = required('PURCHASE_KEEPER_ADDRESS');
 const subscriptionInput = required('VRF_SUBSCRIPTION_ID');
+const minVrfBalanceInput = required('VRF_MIN_NATIVE_BALANCE_BNB');
 const callbackGasInput = required('VRF_CALLBACK_GAS_LIMIT');
 const initialQuoteInput = required('INITIAL_LIQUIDITY_BSC_USD');
 const minPoolInput = required('ORACLE_MIN_POOL_VALUE_USD');
 const publicApiInput = required('PUBLIC_API_BASE_URL');
+const walletConnectProjectId = required('WALLETCONNECT_PROJECT_ID');
 if (missing.length) {
   process.stderr.write(`Missing deployment configuration: ${missing.join(', ')}\n`);
   process.stderr.write('No transaction was sent. Fill the mainnet deployment environment, then rerun the preflight.\n');
   process.exit(2);
 }
+if (!/^[a-f\d]{32}$/i.test(walletConnectProjectId)) throw new Error('WALLETCONNECT_PROJECT_ID must be the 32-character public project ID from WalletConnect Cloud');
 if (privateKeyFile && !fs.existsSync(privateKeyFile)) throw new Error('DEPLOYER_PRIVATE_KEY_FILE does not point to a readable key file');
 const quoteToken = address('QUOTE_TOKEN_ADDRESS', env.QUOTE_TOKEN_ADDRESS || defaults.quoteToken);
 const routerAddress = address('PANCAKE_V2_ROUTER', env.PANCAKE_V2_ROUTER || defaults.router);
 const coordinatorAddress = address('VRF_COORDINATOR', env.VRF_COORDINATOR || defaults.coordinator);
 const treasury = address('OPERATIONS_TREASURY', treasuryInput);
+const purchaseKeeper = address('PURCHASE_KEEPER_ADDRESS', purchaseKeeperInput);
+if (purchaseKeeper === '0x0000000000000000000000000000000000000000') {
+  throw new Error('PURCHASE_KEEPER_ADDRESS must be a non-zero dedicated Keeper wallet');
+}
+if (purchaseKeeper.toLowerCase() === deployer.toLowerCase()) {
+  throw new Error('Purchase Keeper must use a dedicated wallet, separate from the deployment wallet');
+}
+if (purchaseKeeper.toLowerCase() === treasury.toLowerCase()) {
+  throw new Error('Purchase Keeper must use a dedicated wallet, separate from the operations treasury');
+}
 const lpBeneficiaryInput = env.LP_BENEFICIARY || '';
 const subscriptionId = BigInt(subscriptionInput);
 if (subscriptionId <= 0n) throw new Error('VRF_SUBSCRIPTION_ID must be positive');
+if (!/^\d+(\.\d{1,18})?$/.test(minVrfBalanceInput)) throw new Error('VRF_MIN_NATIVE_BALANCE_BNB must be a positive decimal amount with at most 18 places');
+const minVrfBalanceWei = parseEther(minVrfBalanceInput);
+if (minVrfBalanceWei <= 0n) throw new Error('VRF_MIN_NATIVE_BALANCE_BNB must be greater than zero');
 const callbackGas = integer('VRF_CALLBACK_GAS_LIMIT', callbackGasInput, 100_000);
 if (callbackGas > 2_500_000) throw new Error('VRF_CALLBACK_GAS_LIMIT exceeds the BNB Chain VRF v2.5 maximum of 2500000');
 const initialQuote = initialQuoteInput;
@@ -196,15 +215,18 @@ catch { throw new Error('VRF subscription does not exist at the configured coord
 if (subscription.owner.toLowerCase() !== deployer.toLowerCase()) {
   throw new Error(`VRF subscription owner ${subscription.owner} must equal deployer ${deployer}, so the deployment can register both consumers`);
 }
-if (subscription.nativeBalance === 0n) throw new Error('VRF subscription native BNB balance is zero');
+if (subscription.nativeBalance < minVrfBalanceWei) {
+  throw new Error(`VRF subscription native BNB balance ${formatEther(subscription.nativeBalance)} is below the configured operating floor ${minVrfBalanceInput}`);
+}
 const vrfConsumers = subscription.consumers.map((consumer) => consumer.toLowerCase());
 
 const plan = {
-  network: 'BNB Smart Chain Mainnet', chainId: 56, deployer, lpBeneficiary, operationsTreasury: treasury,
+  network: 'BNB Smart Chain Mainnet', chainId: 56, deployer, lpBeneficiary, operationsTreasury: treasury, purchaseKeeper,
   quoteToken, quoteDecimals: Number(quoteDecimals), quoteTokenLabel: 'Binance-Peg BSC-USD',
   pancakeV2Router: routerAddress, pancakeV2Factory: routerFactory, vrfCoordinator: coordinatorAddress,
   vrfSubscriptionId: subscriptionId.toString(), vrfSubscriptionOwner: subscription.owner,
   vrfNativeBalanceWei: subscription.nativeBalance.toString(), vrfConsumerCount: subscription.consumers.length,
+  vrfMinimumNativeBalanceBNB: minVrfBalanceInput,
   vrfKeyHash: keyHash, vrfRequestConfirmations: confirmations, vrfCallbackGasLimit: callbackGas,
   initialLiquidityBAI: defaults.initialBai, initialLiquidityBSCUSD: initialQuote,
   initialLiquidityBAITaxBps: 200,
@@ -218,7 +240,7 @@ const plan = {
     'Sales remain paused until the 24-hour TWAP reaches maturity and the pool floor is satisfied; run the production keeper before opening purchases.',
     'The initial BAI liquidity transfer touches the configured pair and incurs the fixed 2% token tax: 400,000 BAI gross results in approximately 392,000 BAI reaching the pair.',
     'The generated bai-config.js points the public site to the deployed contract addresses and the configured HTTPS card-index API. Publish the reviewed static-site change separately.',
-    'BSC-USD is Binance-Peg BSC-USD. The contract purchase path uses the buyBoxes transaction (and token approval), not a plain token transfer to the game address.'
+    'Confirmed BSC-USD transfers to a purchaser or referral deposit vault are registered and settled by the configured purchase Keeper; plain transfers to the game address do not buy boxes. Native BNB purchases go through BAIPurchaseProcessor.'
   ]
 };
 process.stdout.write(`${JSON.stringify(plan, null, 2)}\n`);
@@ -245,7 +267,7 @@ rl.close();
 if (confirmation !== 'DEPLOY BSC MAINNET') throw new Error('Confirmation did not match; no transaction was sent');
 
 if (record) {
-  const immutable = ['chainId','deployer','lpBeneficiary','operationsTreasury','quoteToken','pancakeV2Router',
+  const immutable = ['chainId','deployer','lpBeneficiary','operationsTreasury','purchaseKeeper','quoteToken','pancakeV2Router',
     'vrfCoordinator','vrfSubscriptionId','vrfKeyHash','vrfRequestConfirmations','vrfCallbackGasLimit',
     'initialLiquidityBAI','initialLiquidityBSCUSD','oracleMinimumPoolValueUSD','publicApiBaseUrl'];
   for (const key of immutable) {
@@ -260,7 +282,8 @@ if (record) {
 }
 const metadataRenderer = await deployContract(signer, 'BAICardMetadataRenderer', [], record, 'metadataRenderer');
 const game = await deployContract(signer, 'BAIBlindBoxGameV2', [quoteToken, coordinatorAddress, keyHash,
-  subscriptionId, confirmations, callbackGas, routerAddress, await metadataRenderer.getAddress()], record, 'game');
+  subscriptionId, confirmations, callbackGas, await metadataRenderer.getAddress()], record, 'game');
+const purchaseProcessor = await deployContract(signer, 'BAIPurchaseProcessor', [quoteToken, await game.getAddress(), routerAddress, purchaseKeeper], record, 'purchaseProcessor');
 const freeDrop = await deployContract(signer, 'BAIFreeDrop', [await game.getAddress(), coordinatorAddress,
   keyHash, subscriptionId, confirmations, callbackGas], record, 'freeDrop');
 const router = new Contract(routerAddress, [
@@ -273,6 +296,14 @@ const factory = new Contract(routerFactory, [
 ], signer);
 const token = await deployContract(signer, 'BAIToken', [routerFactory, quoteToken, deployer, await game.getAddress(),
   await freeDrop.getAddress(), treasury, await game.getAddress()], record, 'baiToken');
+const currentPurchaseProcessor = await game.purchaseProcessor();
+if (currentPurchaseProcessor === '0x0000000000000000000000000000000000000000') {
+  const linkTx = await game.setPurchaseProcessor(await purchaseProcessor.getAddress());
+  await linkTx.wait();
+  update(record, 'linkPurchaseProcessorTransaction', linkTx.hash);
+} else if (currentPurchaseProcessor.toLowerCase() !== (await purchaseProcessor.getAddress()).toLowerCase()) {
+  throw new Error('Game is linked to a different purchase processor');
+}
 const actualToken = await token.getAddress();
 const pairView = new Contract(routerFactory, ['function getPair(address,address) view returns (address)'], provider);
 let pairAddress = await pairView.getPair(quoteToken, actualToken);

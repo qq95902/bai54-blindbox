@@ -1,0 +1,26 @@
+# Dependencies and build output
+node_modules/
+dist/
+artifacts/
+cache/
+coverage/
+.npm-cache/
+backend/.env
+backend/secrets/
+
+# Local configuration and secrets
+.env
+.env.mainnet
+.env.*
+!.env.example
+!.env.mainnet.example
+!.env.testnet.example
+!backend/.env.testnet.example
+*.pem
+*.key
+
+# Local runtime data
+logs/
+*.log
+.DS_Store
+sandbox/.tmp/

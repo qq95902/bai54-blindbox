@@ -1,0 +1,21 @@
+{
+  "name": "bai-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22 <23"
+  },
+  "scripts": {
+    "api": "node src/api.mjs",
+    "indexer": "node src/indexer.mjs",
+    "keeper": "node src/keeper.mjs",
+    "migrate": "node src/migrate.mjs",
+    "sandbox:simulate": "node sandbox/keeper-action.mjs && node sandbox/keeper-time.mjs && node sandbox/purchase-deposit.mjs && node sandbox/deposit-sender-queue.mjs && node sandbox/keeper-deposit-load.mjs && node sandbox/purchase-status-api.mjs && node sandbox/indexer-reorg.mjs && node sandbox/deposit-log-query.mjs && node sandbox/ip-rate-limit.mjs && node sandbox/trace-correlation.mjs",
+    "sandbox:load-3000": "node sandbox/load-3000.mjs"
+  },
+  "dependencies": {
+    "ethers": "6.17.0",
+    "pg": "8.13.1"
+  }
+}

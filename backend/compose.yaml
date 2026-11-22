@@ -1,0 +1,52 @@
+services:
+  api:
+    build: .
+    command: ["node", "src/api.mjs"]
+    env_file: .env
+    restart: unless-stopped
+    expose: ["8080"]
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/readyz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    stop_grace_period: 20s
+
+  indexer:
+    build: .
+    command: ["node", "src/indexer.mjs"]
+    env_file: .env
+    environment:
+      SERVICE_NAME: indexer
+    restart: unless-stopped
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
+
+  keeper:
+    build: .
+    command: ["node", "src/keeper.mjs"]
+    env_file: .env
+    environment:
+      SERVICE_NAME: keeper
+    restart: unless-stopped
+    secrets: [keeper_private_key]
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
+
+secrets:
+  keeper_private_key:
+    file: ./secrets/keeper_private_key
