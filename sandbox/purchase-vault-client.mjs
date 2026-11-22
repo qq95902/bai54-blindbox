@@ -15,7 +15,8 @@ let assertions = 0;
 function check(actual, expected, message) { assert.equal(actual, expected, message); assertions++; }
 async function rejects(promise, pattern, message) { await assert.rejects(promise, pattern, message); assertions++; }
 const reply = (body, status = 200) => ({ ok: status >= 200 && status < 300, status, async json() { return body; } });
-const challengeId = 'a'.repeat(64);
+// Backend token shape: base64url payload + hex HMAC.
+const challengeId = `eyJ2ZXJzaW9uIjoxfQ.${'b'.repeat(64)}`;
 const challengeMessage = 'BAI Blind Box\nAction: Create a buyer-bound USDT deposit address';
 const signature = `0x${'ab'.repeat(65)}`;
 const validChallenge = { challengeId, message: challengeMessage, expiresAt: new Date(Date.now() + 60_000).toISOString(), chainId: 97 };
