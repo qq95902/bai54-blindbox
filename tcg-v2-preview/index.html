@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080b10">
+  <meta name="description" content="BAI TCG: Crypto Genesis — an original cyberpunk trading card demo with sealed packs, collectible cards, fusion, and a simulated player market.">
+  <title>BAI TCG · Crypto Genesis</title>
+  <link rel="stylesheet" href="./tcg-v2/tcg.css">
+  <link rel="stylesheet" href="./tcg-v2/pack-shop.css">
+  <link rel="stylesheet" href="./tcg-v2/card-frame.css?v=20261127-3d">
+  <link rel="stylesheet" href="./tcg-v2/cyberpunk.css?v=20261127-bilingual">
+</head>
+<body>
+  <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+  <header class="topbar">
+    <a class="brand" href="./tcg-v2.html"><span class="brand-mark">B</span><span><b>BAI TCG</b><small>BNB CHAIN · CRYPTO GENESIS</small></span></a>
+    <nav class="main-nav" aria-label="Main navigation">
+      <button class="nav-item active" data-view="home">Discover</button>
+      <button class="nav-item" data-view="shop">Card Packs</button>
+      <button class="nav-item" data-view="catalog">Card Archive</button>
+      <button class="nav-item" data-view="fusion">Forge</button>
+      <button class="nav-item" data-view="market">Trading Market</button>
+      <button class="nav-item" data-view="arena">Arena</button>
+    </nav>
+    <div class="top-actions"><div class="language-switch" role="group" aria-label="Language"><button id="lang-zh" type="button">中文</button><button id="lang-en" type="button">EN</button></div><span class="demo-pill"><i></i> LOCAL DEMO</span><button class="profile-button" data-view="profile"><span class="avatar">01</span><span>Collection</span><b id="top-card-count">0</b></button><button class="mobile-menu" id="mobile-menu" aria-label="Open menu">☰</button></div>
+  </header>
+
+  <main id="app-main">
+    <section class="view active" id="view-home" data-view-panel="home">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow"><span>SEASON 01</span><i></i><span>ORIGINAL TCG CARD SET</span></div>
+          <h1>Crypto<br><em>Genesis</em></h1>
+          <div class="hero-actions"><button class="button button-gold" data-view="shop">Explore packs <span>↗</span></button><button class="button button-quiet" data-view="catalog">View the archive</button></div>
+          <div class="hero-stats"><div><b>60</b><span>Cards</span></div><div><b>05</b><span>Rarity tiers</span></div><div><b>04</b><span>Pack tiers</span></div></div>
+        </div>
+        <div class="hero-art" aria-label="Crypto Genesis collectible card showcase">
+          <div class="orbit orbit-outer"></div><div class="orbit orbit-inner"></div><div class="hero-light"></div>
+          <article class="show-card show-card-back"><div class="show-card-frame"><small>BAI · GENESIS</small><strong>✦</strong><span>THE FIRST SIGNAL</span></div></article>
+          <article class="show-card show-card-front"><div class="show-card-frame"><div class="card-topline"><small>SSS · GC-018</small><span>GENESIS</span></div><div class="character character-nova"><i></i><b>✧</b><span>✦</span></div><div class="show-card-name"><small>BITCOIN · FIRE ELEMENT</small><b>NOVA FORGE</b></div><div class="show-stats"><span>ATK <b>96</b></span><span>DEF <b>88</b></span><span>CRYPTO GENESIS</span></div></div></article>
+          <div class="floating-chip chip-one">BNB CHAIN <b>01</b></div><div class="floating-chip chip-two">GENESIS <b>SSS</b></div>
+        <div class="hero-caption"><i></i> SEASON 01 <span>CARD 018 / 060</span></div>
+        </div>
+      </div>
+      <div class="crypto-constellation" aria-label="Crypto Genesis motifs: Bitcoin, Ethereum and BNB Chain">
+        <div class="crypto-constellation-title"><span>CRYPTO ROOTS</span><i></i><small>BTC · ETH · BNB</small></div>
+        <div class="crypto-asset crypto-btc"><span class="crypto-coin-mark">₿</span><span><b>BITCOIN</b><small>BTC</small></span></div>
+        <div class="crypto-asset crypto-eth"><svg class="crypto-coin-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5 5.1 12.1 12 16l6.9-3.9L12 1.5Z" fill="currentColor"/><path d="m5.1 13.5 6.9 9 6.9-9L12 17.4l-6.9-3.9Z" fill="currentColor" opacity=".62"/></svg><span><b>ETHER</b><small>ETH</small></span></div>
+        <div class="crypto-asset crypto-bnb"><svg class="crypto-coin-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 1.5 3.4 3.4L12 8.3 8.6 4.9 12 1.5Zm7.6 7.6L23 12l-3.4 3.4L16.2 12l3.4-2.9ZM12 15.7l3.4 3.4-3.4 3.4-3.4-3.4 3.4-3.4ZM4.4 9.1 7.8 12l-3.4 3.4L1 12l3.4-2.9ZM12 9.3l2.7 2.7-2.7 2.7L9.3 12 12 9.3Z" fill="currentColor"/></svg><span><b>BNB CHAIN</b><small>BNB</small></span></div>
+      </div>
+      <div class="card-strip" id="featured-cards"></div>
+
+    </section>
+
+    <section class="view" id="view-shop" data-view-panel="shop">
+      <div class="page-heading"><div><h1>Card Packs</h1></div></div>
+      <nav class="pack-tier-tabs" id="pack-grid" aria-label="Choose a pack tier"></nav>
+      <section class="pack-stage" id="pack-stage" aria-live="polite"></section>
+      <div class="pack-orderbar" id="pack-orderbar"></div>
+      <div class="rarity-odds" id="rarity-odds"></div>
+    </section>
+
+    <section class="view" id="view-catalog" data-view-panel="catalog">
+      <div class="page-heading catalog-heading"><div><h1>Card Archive</h1></div><div class="completion-card"><div class="completion-ring" id="completion-ring"><b id="completion-percent">0%</b></div><span>Collected <b id="completion-count">0 / 60</b></span></div></div>
+      <div class="filter-bar"><div class="filter-tabs" id="catalog-filters"><button class="selected" data-rarity="all">All</button><button data-rarity="N">R</button><button data-rarity="R">SR</button><button data-rarity="SR">S</button><button data-rarity="SSR">SS</button><button data-rarity="UR">SSS</button></div><label class="search-box"><span>⌕</span><input id="catalog-search" placeholder="Search name, ID or element"></label></div>
+      <div class="catalog-grid" id="catalog-grid"></div>
+    </section>
+
+    <section class="view" id="view-fusion" data-view-panel="fusion">
+      <div class="page-heading"><div><h1>Forge</h1></div><div class="fusion-rule"><span>3 × same card</span><b>→</b><span>1 × next tier</span></div></div>
+      <div class="fusion-layout"><div class="fusion-selection"><div class="panel-heading"><h2>Select cards</h2><span id="fusion-selected-count">0 / 3</span></div><div class="fusion-inventory" id="fusion-inventory"></div><button class="button button-gold full-button" id="fuse-button" disabled>Forge</button></div><div class="fusion-stage" id="fusion-stage"><div class="forge-rune">✧</div><h2>Select 3 cards</h2></div></div>
+    </section>
+
+    <section class="view" id="view-market" data-view-panel="market">
+      <div class="page-heading market-heading"><div><h1>Market</h1></div><div class="market-volume"><small>VOLUME</small><b id="market-volume">1,284.50 <i>USDT</i></b></div></div>
+      <div class="market-toolbar"><div class="filter-tabs" id="market-rarity"><button class="selected" data-rarity="all">All tiers</button><button data-rarity="N">R</button><button data-rarity="R">SR</button><button data-rarity="SR">S</button><button data-rarity="SSR">SS</button><button data-rarity="UR">SSS</button></div><select id="market-sort" aria-label="Sort by price"><option value="featured">Featured</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option></select><button class="button button-quiet" id="sell-card-button">＋ Sell</button></div>
+      <div class="market-grid" id="market-grid"></div>
+    </section>
+
+    <section class="view" id="view-arena" data-view-panel="arena">
+      <div class="arena-hero"><div><h1>Arena</h1><button class="button button-gold" id="battle-button">Battle <span>↗</span></button></div><div class="arena-score"><small>SQUAD POWER</small><b id="deck-power">000</b><div class="power-bars"><i></i><i></i><i></i><i></i><i></i></div></div></div>
+      <div class="arena-columns"><div class="arena-panel"><div class="panel-heading"><h2>Squad</h2><span id="deck-count">0 / 3</span></div><div class="deck-slots" id="deck-slots"></div><h3>Cards</h3><div class="deck-picker" id="deck-picker"></div></div><div class="arena-panel encounter-panel"><div class="encounter-orb">◉</div><p class="eyebrow">PVE</p><h2>Void Echo</h2><div class="encounter-stats"><span>Enemy <b>180</b></span><span>Squad <b>3</b></span></div><div id="battle-result" class="battle-result">Select 3 cards.</div></div></div>
+    </section>
+
+    <section class="view" id="view-profile" data-view-panel="profile">
+      <div class="page-heading profile-heading"><div><h1>My Collection</h1></div><div class="profile-avatar">01</div></div>
+      <div class="profile-metrics" id="profile-metrics"></div>
+      <div class="profile-columns"><div class="profile-panel"><div class="panel-heading"><h2>Sealed packs <b id="sealed-pack-count">0</b></h2></div><div id="sealed-pack-list" class="sealed-pack-list"></div><div class="panel-heading history-heading"><h2>Opening history</h2><span id="opened-pack-count">0</span></div><div id="pack-history" class="history-list"></div></div><div class="profile-panel"><div class="panel-heading"><h2>Activity</h2></div><div id="activity-history" class="history-list"></div></div></div>
+      <div class="profile-actions"><button class="button button-quiet" id="reset-demo">Reset local demo</button></div>
+    </section>
+  </main>
+
+  <dialog id="pack-dialog" class="pack-dialog"><button class="dialog-close" data-close-dialog aria-label="Close">×</button><div id="pack-animation" class="pack-animation" aria-live="polite"><div class="pack-opening-light" aria-hidden="true"></div><div class="pack-visual"><i></i><b>BAI</b><span id="pack-animation-tier">GENESIS PACK</span><small>SEALED · SEASON 01</small></div><div class="pack-opening-shards" aria-hidden="true"><i>✦</i><i>✧</i><i>◇</i><i>✧</i></div><p id="pack-animation-label">Opening…</p></div><div id="pack-results" class="pack-results" hidden><h2 id="result-title">Pack opened</h2><div id="result-cards" class="result-card-grid"></div><div class="result-actions"><button class="button button-quiet" data-close-dialog>Close</button><button class="button button-gold" data-view="profile">Collection</button></div></div></dialog>
+  <dialog id="sell-dialog" class="sell-dialog"><button class="dialog-close" data-close-dialog aria-label="Close">×</button><h2>Sell a card</h2><label>Card<select id="sell-card-select"></select></label><label>Price<input id="sell-price" type="number" min="0.1" step="0.1" value="3.5"></label><button class="button button-gold full-button" id="confirm-listing">List</button></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <footer class="site-footer"><a href="./whitepaper.html">Whitepaper</a><span>BAI TCG · CRYPTO GENESIS</span><button id="footer-grant">Load demo</button></footer>
+  <script src="./tcg-v2/tcg.js?v=20261127-bilingual" defer></script>
+</body>
+</html>
