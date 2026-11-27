@@ -1,0 +1,379 @@
+/* BAI TCG · Crypto Genesis
+   A restrained cyberpunk system: carbon surfaces, BNB signal yellow, and
+   rarity color used as information. No simulated on-chain claims. */
+:root {
+  color-scheme: dark;
+  --bg: #080b10;
+  --panel: #0e131a;
+  --panel2: #141b24;
+  --line: #263442;
+  --muted: #82909e;
+  --soft: #c0cad5;
+  --gold: #f0b90b;
+  --gold2: #ffdc68;
+  --lime: #d6f05a;
+  --cyan: #61e6dc;
+  --violet: #bd8cff;
+  --red: #ff5b70;
+  --white: #f0f4f8;
+  --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --sans: Inter, "Avenir Next", Avenir, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --serif: "Avenir Next", Avenir, var(--sans);
+}
+
+html { background: var(--bg); }
+body {
+  color: var(--white);
+  background:
+    radial-gradient(ellipse at 82% -12%, #1530475c, transparent 42%),
+    radial-gradient(ellipse at 7% 38%, #16233b38, transparent 38%),
+    linear-gradient(180deg, #080b10 0%, #0a1017 53%, #080b10 100%);
+  font-family: var(--sans);
+}
+body::before {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none; content: "";
+  opacity: .13;
+  background-image: linear-gradient(#70b3d40e 1px, transparent 1px), linear-gradient(90deg,#70b3d40e 1px,transparent 1px);
+  background-size: 64px 64px;
+  mask-image: linear-gradient(180deg,#000 0%,transparent 72%);
+}
+.ambient { opacity: .12; filter: blur(110px); }
+.ambient-a { background: #f0b90b; }
+.ambient-b { background: #087e97; }
+
+.topbar {
+  height: 76px; padding-inline: max(4.2vw, 28px); gap: 22px;
+  border-bottom: 1px solid #95bbd51b; background: #080b10e8;
+  box-shadow: 0 14px 45px #0006;
+}
+.topbar::after { position:absolute; left:4.2vw; right:4.2vw; bottom:-1px; height:1px; content:""; background:linear-gradient(90deg,transparent,#f0b90b71 17%,#53e8d44a 56%,transparent); }
+.brand { min-width: 190px; gap: 14px; }
+.brand-mark { width: 37px; height: 37px; color: var(--gold); border: 1px solid #f0b90b99; box-shadow: 0 0 22px #f0b90b20,inset 0 0 12px #f0b90b11; }
+.brand b { font-size: 14px; letter-spacing: .17em; }
+.brand small { color: #8497a8; font-size: 7px; letter-spacing: .15em; }
+.main-nav { gap: 0; color: #98a8b7; font: 10px var(--mono); }
+.nav-item { padding: 12px 10px; }
+.nav-item:hover,.nav-item.active { color: #fff; }
+.nav-item.active:after { height: 2px; margin-top: 13px; background: var(--gold); box-shadow: 0 0 12px #f0b90b88; }
+.demo-pill { border-color:#f0b90b70; color:#f7ce3a; background:#f0b90b0b; letter-spacing:.06em; }
+.demo-pill i { background:var(--gold); box-shadow:0 0 11px #f0b90b; }
+.language-switch { display:flex; align-items:center; gap:2px; padding:3px; border:1px solid #324456; border-radius:999px; background:#111923; }
+.language-switch button { min-width:31px; padding:6px 8px; border:0; border-radius:999px; color:#91a0af; background:transparent; font-size:10px; font-weight:700; }
+.language-switch button.active { color:#111; background:var(--gold); }
+.profile-button { border-color:#324456; background:#111923; }
+.avatar { border-color:#f0b90b66; background:#f0b90b16; color:var(--gold2); }
+.mobile-menu { border-color:#324456; }
+
+main { max-width: 1510px; padding-inline: clamp(20px,4.2vw,66px); }
+.view { padding-top: 36px; }
+.hero-grid {
+  min-height: 540px; gap: 2vw; padding: 36px clamp(14px,3vw,46px) 30px;
+  border: 1px solid #47718a4a; border-top-color:#f0b90b78; border-radius: 16px;
+  background: linear-gradient(112deg,#0b1118ee 0%,#0b1118cc 43%,#0a141dbb 100%);
+  box-shadow: 0 26px 85px #0006, inset 0 1px #ffffff0c;
+}
+.hero-grid::before {
+  position:absolute; inset:0; pointer-events:none; content:"";
+  background: radial-gradient(ellipse at 72% 40%,#e2a80b16,transparent 28%), linear-gradient(105deg,transparent 58%,#5bded508 80%,transparent);
+}
+.hero-grid::after {
+  position:absolute; top:0; right:0; width:30%; height:100%; pointer-events:none; content:"";
+  opacity:.18; background:repeating-linear-gradient(135deg,transparent 0 13px,#71d9e8 13px 14px,transparent 14px 29px);
+  mask-image:linear-gradient(90deg,transparent,#000);
+}
+.hero-copy { max-width: 590px; padding-left:clamp(0px,2vw,24px); }
+.hero-copy .eyebrow { color:#a9bbca; font-size:9px; letter-spacing:.23em; }
+.hero-copy .eyebrow span:first-child { color:var(--gold); }
+.hero-copy h1 { margin-top:24px; font:700 clamp(60px,8vw,110px)/.86 var(--sans); letter-spacing:-.075em; text-transform:uppercase; }
+.hero-copy h1,.page-heading h1,.arena-hero h1,.pack-stage-copy h2 {
+  font-family:Inter,"Avenir Next",Avenir,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-weight:760;
+}
+.hero-copy h1,.page-heading h1,.arena-hero h1 { text-wrap:balance; }
+.hero-copy h1 em { display:inline-block; margin-top:9px; color:#f0b90b; text-shadow:0 0 40px #f0b90b31; }
+.hero-lead { max-width:490px; margin:27px 0 28px; color:#a2b1bf; font-size:14px; line-height:1.75; }
+.button { border-radius:5px; padding:13px 18px; font-size:10px; letter-spacing:.04em; }
+.button-gold { border-color:#f0b90b; background:linear-gradient(105deg,#ffd341,#e5aa05); box-shadow:0 8px 25px #f0b90b26; }
+.button-quiet { border-color:#334758; background:#111922; color:#d6e0e8; }
+.hero-stats { max-width:520px; gap:16px; margin-top:43px; border-color:#84b2cd22; }
+.hero-stats div { position:relative; padding-left:14px; }
+.hero-stats div::before { position:absolute; top:4px; bottom:2px; left:0; width:2px; content:""; background:var(--gold); opacity:.72; }
+.hero-stats b { font-size:22px; color:#f4f8fc; }
+.hero-stats span { color:#8292a1; font-size:8px; line-height:1.4; }
+.hero-art { height:475px; }
+.hero-light { background:radial-gradient(ellipse,#efac203c,transparent 69%); }
+.orbit { border-color:#e4b13344; }
+.orbit-inner { border-color:#59e1d644; }
+.show-card { width:clamp(195px,19vw,242px); height:auto; aspect-ratio:.68; padding:7px; border-radius:11px; }
+.show-card-frame { border-radius:7px; padding:11px; }
+.show-card-front { transform:rotate(7deg) translate(26px,9px); background:linear-gradient(135deg,#f4c337,#4a3611 27%,#18212d 59%,#79601e); box-shadow:0 24px 70px #000a,0 0 65px #e0a90031; }
+.show-card-front .show-card-frame { border-color:#fbe195aa; background:linear-gradient(150deg,#131c25,#0f141b 72%,#281d08); }
+.show-card-back { transform:rotate(-11deg) translate(-74px,15px); background:linear-gradient(145deg,#5fe3d6,#132a39 40%,#202747); opacity:.86; }
+.show-card-back .show-card-frame { border-color:#9cfff0; background:repeating-linear-gradient(45deg,#ffffff06 0 4px,transparent 4px 13px),radial-gradient(circle at 50% 42%,#55dbcc40,transparent 45%),#07151d; color:#bffff7; }
+.show-card-back strong { color:#d5fff4; text-shadow:0 0 34px #4debdc; }
+.card-topline { color:#ffdb6f; }
+.character.character-nova { border:1px solid #f0b90b3a; background-image:linear-gradient(180deg,#080b1000 28%,#080b10c9 100%),url('../assets/tcg/GC-018-anime-v2.jpg'); background-size:cover; background-position:center 26%; }
+.show-card-name { color:#f4e5b4; }
+.show-card-name small { color:#9bb0be; font:7px var(--mono); letter-spacing:.14em; }
+.show-card-name b { font-size:11px; }
+.show-stats { border-color:#ffffff29; }
+.show-stats b { color:#fff0b5; }
+.floating-chip { border-color:#50708680; background:#08111be8; color:#b5c4d1; box-shadow:0 10px 25px #0006; }
+.floating-chip b { color:var(--gold2); }
+.chip-one { left:0; top:16%; }
+.chip-two { right:0; bottom:16%; }
+.hero-caption { color:#9bacb9; }
+.crypto-constellation { margin:14px 0 24px; border:1px solid #314859; border-radius:9px; background:#0d141bcc; box-shadow:inset 0 1px #ffffff0b; }
+.crypto-constellation-title { color:#8195a6; }
+.crypto-coin-mark { color:var(--gold); }
+.crypto-asset { border-left-color:#29404f; }
+.crypto-asset b { color:#e9f0f6; }
+.crypto-asset small { color:#8799a8; }
+.crypto-btc .crypto-coin-mark { color:#f7931a; }
+.crypto-eth .crypto-coin-mark { color:#9da5ff; }
+.crypto-bnb .crypto-coin-mark { color:#f0b90b; }
+.demo-banner { gap:15px; margin:20px 0 47px; padding:14px 18px; border-color:#496051; border-radius:8px; background:linear-gradient(100deg,#101b1c,#0e1419); }
+.banner-icon { border:1px solid #f0b90b4d; background:#f0b90b12; color:var(--gold); }
+.demo-banner b { color:#f4ce42; font:10px var(--mono); letter-spacing:.12em; }
+.demo-banner span { color:#98a9b7; font-size:10px; }
+.text-button { color:#f0c33c; font:9px var(--mono); letter-spacing:.03em; }
+.section-head { margin-bottom:18px; }
+.section-head h2,.roadmap-strip h2 { color:#edf3f7; font-size:22px; letter-spacing:-.03em; }
+.section-note { color:#8192a1; }
+.feature-grid { gap:14px; }
+.feature-tile,.feature-book,.feature-arena {
+  height:166px; border-color:#2d4353; border-radius:8px; padding:18px;
+  background:linear-gradient(130deg,#111a23,#0e141b 75%); box-shadow:inset 0 1px #ffffff0b;
+}
+.feature-tile:hover { transform:translateY(-3px); border-color:#f0b90b9c; box-shadow:0 14px 32px #0006,0 0 24px #f0b90b13; }
+.feature-icon { color:var(--gold); }
+.feature-tile>small { color:#7f95a5; }
+.feature-tile>b { margin:7px 0 5px; color:#edf4f8; font-size:16px; }
+.feature-tile>span:last-of-type { color:#92a3b0; font-size:9px; }
+.feature-tile>i { color:var(--gold); }
+.feature-shop { background:radial-gradient(circle at 98% 0,#f0b90b16,transparent 42%),linear-gradient(130deg,#111a23,#0e141b 75%); }
+.feature-book { background:radial-gradient(circle at 98% 0,#52dccc12,transparent 42%),linear-gradient(130deg,#111a23,#0e141b 75%); }
+.feature-arena { background:radial-gradient(circle at 98% 0,#a66cff17,transparent 42%),linear-gradient(130deg,#111a23,#0e141b 75%); }
+.section-head.compact { margin-top:44px; }
+.card-strip { gap:13px; }
+
+.page-heading { margin:12px 0 29px; }
+.page-heading h1,.arena-hero h1 { color:#f1f5f9; font-size:clamp(42px,5vw,64px); letter-spacing:-.06em; }
+.page-heading h1 em,.arena-hero h1 em { color:var(--gold); }
+.page-heading>div:first-child>p:last-child { color:#98aab9; font-size:12px; }
+.completion-card,.market-volume,.demo-balance { border-color:#334a5d; background:#111923; }
+.completion-ring { filter:drop-shadow(0 0 8px #f0b90b33); }
+.completion-card>span { color:#96a6b2; }
+.filter-bar,.market-toolbar { gap:14px; }
+.filter-tabs { border:1px solid #293d4d; border-radius:6px; background:#0e151c; padding:3px; }
+.filter-tabs button { border-radius:4px; color:#93a5b3; font:9px var(--mono); }
+.filter-tabs button.selected { color:#17140a; background:#f0b90b; }
+.search-box, .market-toolbar select { border-color:#314657; background:#111923; color:#d5dfe8; }
+.catalog-grid { gap:17px; }
+.catalog-grid>.tcg-card { min-width:0; }
+
+/* Collector card / NFT metadata treatment */
+.tcg-card { --rarity-color:#d4e0ea; border-radius:10px; background:linear-gradient(135deg,color-mix(in srgb,var(--rarity-color) 78%,#fff),#182432 28%,#0d141c 72%,color-mix(in srgb,var(--rarity-color) 35%,#10161e)); padding:1px; box-shadow:0 12px 30px #0008,0 0 0 1px #ffffff08; }
+.tcg-card.r-N { --rarity-color:#b8c5d5; }
+.tcg-card.r-R { --rarity-color:#52dfc0; }
+.tcg-card.r-SR { --rarity-color:#57c9ff; }
+.tcg-card.r-SSR { --rarity-color:#bd8cff; }
+.tcg-card.r-UR { --rarity-color:#ffb84d; }
+.tcg-card-inner { border:1px solid color-mix(in srgb,var(--rarity-color) 45%,#263849); border-radius:9px; background:#0b1118; }
+.tcg-card-inner:after { opacity:.45; background:linear-gradient(125deg,transparent 0 28%,color-mix(in srgb,var(--rarity-color) 11%,transparent) 46%,transparent 59%); }
+.tcg-card-head { align-items:center; min-height:34px; padding:8px 9px 3px; color:#eff5f8; font:700 8px var(--mono); letter-spacing:.045em; }
+.tcg-card-head>b { max-width:64%; color:#ecf3f7; font:700 9px var(--sans); letter-spacing:.055em; line-height:1.25; }
+.rarity-badge { border:1px solid color-mix(in srgb,var(--rarity-color) 63%,transparent); border-radius:3px; padding:4px 6px; background:color-mix(in srgb,var(--rarity-color) 12%,#091018); color:var(--rarity-color); font:700 7px var(--mono); white-space:nowrap; }
+.rarity-badge i { opacity:.5; font-style:normal; }
+.tcg-card-meta { display:flex; justify-content:space-between; gap:4px; min-height:19px; padding:1px 9px 4px; color:#8fa2b2; font:6px var(--mono); letter-spacing:.025em; }
+.tcg-card-meta i { color:#f0b90b; font-style:normal; }
+.tcg-card-art { position:relative; margin:0 7px; aspect-ratio:.83; overflow:hidden; border:1px solid color-mix(in srgb,var(--rarity-color) 43%,#293b4b); border-radius:5px; background:#121923; }
+.tcg-card-art.has-illustration:before { background:linear-gradient(180deg,#09101800 56%,#081019b8 100%),linear-gradient(90deg,#07101a55,transparent 18% 78%,#07101a44); }
+.tcg-card-art.has-illustration:after { inset:4px; border:1px solid color-mix(in srgb,var(--rarity-color) 51%,transparent); border-radius:3px; box-shadow:inset 0 0 20px #06090d70,0 0 12px color-mix(in srgb,var(--rarity-color) 17%,transparent); }
+.tcg-card-image { object-position:center 26%; filter:saturate(1.08) contrast(1.03); transition:transform .6s cubic-bezier(.2,.7,.2,1); }
+.tcg-card:hover .tcg-card-image { transform:scale(1.045); }
+.crypto-crest { width:37px; height:40px; top:8px; right:8px; border:1px solid color-mix(in srgb,var(--crypto-color) 70%,#fff); border-radius:6px; background:#080c12e8; box-shadow:0 0 18px color-mix(in srgb,var(--crypto-color) 27%,transparent); }
+.crypto-crest:before { display:none; }
+.crypto-crest b { font-size:16px; }
+.crypto-crest small { font-size:5px; }
+.element-glyph { right:8px; bottom:8px; width:auto; min-width:28px; height:22px; padding-inline:6px; border-color:#ffffff38; border-radius:3px; background:#080c12dd; color:#dbe6ed; font:7px var(--mono); }
+.nft-edition { position:absolute; left:8px; bottom:8px; z-index:2; padding:4px 5px; border:1px solid #ffffff32; border-radius:3px; background:#080c12df; color:#d1dde5; font:5px var(--mono); letter-spacing:.12em; }
+.tcg-card-name { min-height:20px; padding:5px 9px 1px; }
+.tcg-card-name small { color:#8094a4; font:6px var(--mono); letter-spacing:.09em; }
+.tcg-card-name i { color:var(--gold); font-style:normal; }
+.tcg-card-skill { min-height:51px; margin:0 7px; padding:7px 8px; border:1px solid #304353; border-left:2px solid var(--rarity-color); border-radius:4px; background:linear-gradient(100deg,color-mix(in srgb,var(--rarity-color) 8%,#111923),#0f161e 80%); }
+.tcg-card-skill>span { color:var(--rarity-color); font:700 7px var(--mono); letter-spacing:.035em; }
+.tcg-card-skill p { margin:4px 0 0; color:#b3c0ca; font-size:8px; line-height:1.4; }
+.tcg-card-chain-marks { display:flex; align-items:center; justify-content:space-between; gap:4px; margin:6px 8px 0; padding:0 1px 5px; border-bottom:1px solid #ffffff15; color:#788c9b; font:5px var(--mono); letter-spacing:.035em; }
+.tcg-card-chain-marks span:first-child { font-size:6px; font-weight:700; }
+.tcg-card-chain-marks span:last-child { text-align:right; }
+.tcg-card-stats { margin:5px 8px 7px; padding-top:5px; border-color:#ffffff18; color:#8698a7; font:6px var(--mono); }
+.tcg-card-stats b { color:#edf3f6; font-size:8px; }
+.tcg-card-number { color:#9aa8b2; font-size:5px; letter-spacing:.06em; }
+.owned-count { border-color:#f0b90b77; background:#111923; color:#ffdb64; }
+.empty-state { border-color:#314555; background:#0e151d; color:#95a7b5; }
+.rarity-odds { border-color:#2f4658; background:#0d141c; }
+.rarity-odds>div { border-color:#293f50; }
+.rarity-odds small { color:#8699a8; }
+
+.pack-tier-tabs { gap:10px; }
+.pack-tier { border-color:#2e4556; border-radius:6px; background:linear-gradient(140deg,#121b24,#0d141b); }
+.pack-tier.selected { border-color:var(--gold); background:linear-gradient(140deg,#1b211e,#12171b); box-shadow:0 0 24px #f0b90b12; }
+.tier-name b { color:#eef3f6; }
+.tier-name small,.tier-price small { color:#8194a3; }
+.tier-price { color:var(--gold2); }
+.pack-stage { border-color:#334b5b; border-radius:10px; background:radial-gradient(ellipse at 23% 50%,#1e363d 0%,transparent 37%),linear-gradient(120deg,#0e151c,#0c1219 64%,#111820); box-shadow:0 20px 50px #0004,inset 0 1px #ffffff10; }
+.pack-stage-inner { min-height:350px; }
+.pack-scene { min-height:330px; }
+.pack-halo { border-color:#f0b90b39; box-shadow:0 0 55px #f0b90b12,inset 0 0 45px #45e3d00d; }
+.pack-object { filter:drop-shadow(0 26px 34px #000a); }
+.pack-seal { border-color:#fff7; background:linear-gradient(155deg,#182632,#0b1119 70%); box-shadow:inset 0 0 24px #60e4d31a,0 0 30px #f0b90b14; }
+.pack-seal { background:radial-gradient(circle at 50% 46%,#f0b90b13 0 1px,transparent 2px),radial-gradient(circle at 50% 46%,transparent 0 31px,#f0b90b18 32px 33px,transparent 34px),linear-gradient(155deg,#182632,#0b1119 70%); }
+.pack-seal:after { width:68%; height:68%; bottom:16%; border:1px solid #f0b90b22; border-radius:50%; transform:none; }
+.pack-seal b { font-family:Inter,"Avenir Next",Avenir,system-ui,sans-serif; font-size:clamp(18px,2.7vw,26px); letter-spacing:.2em; }
+.pack-seal small { color:#b3c4d1; }
+.pack-seal b { color:var(--gold); text-shadow:0 0 26px #f0b90b34; }
+.pack-seal span { color:#b7c7d3; }
+.pack-stage-copy h2 { color:#f0f5f8; font:700 clamp(28px,3vw,39px) var(--sans); letter-spacing:-.04em; }
+.pack-stage-copy .eyebrow { color:#9bb0bd; }
+.pack-description { color:#9aabb7; }
+.pack-specs>div { border-color:#293f50; background:#0d151caa; }
+.pack-specs small { color:#8194a3; font:7px var(--mono); letter-spacing:.08em; }
+.pack-specs b { color:#eaf1f5; }
+.pack-season-stamp { color:#f1cf51; }
+.pack-orderbar { border-color:#2d4557; background:#0d141cf2; }
+.pack-balance-box,.pack-quantity-box { border-color:#293e4f; background:#111a23; }
+.pack-balance-box small,.pack-quantity-box>span { color:#8da1b1; font:7px var(--mono); letter-spacing:.06em; }
+.pack-balance-box b { color:#f0f4f7; }
+.quantity-stepper button { background:#1b2934; color:var(--gold); }
+.pack-open-button { border-color:#ffd64d; background:linear-gradient(105deg,#ffda47,#eab400); box-shadow:0 10px 32px #f0b90b1e; }
+.pack-order-note { color:#8c9daa; }
+.shop-footnote { border-color:#2e4353; background:#0e151d; color:#93a5b3; }
+
+.fusion-rule,.fusion-selection,.fusion-stage,.market-item,.arena-panel,.profile-panel { border-color:#2f4555; background:linear-gradient(145deg,#111923,#0d141b); }
+.fusion-rule span,.panel-heading h2,.arena-panel h3,.market-item-info span,.profile-metric small { color:#dce5eb; }
+.fusion-rule small,.muted,.market-item-info small,.market-item-tag { color:#8fa1af; }
+.market-fee-note { border-color:#3b5363; color:#b5c3cc; background:#111b23; }
+.market-item-info b { color:#ffda60; }
+.market-item-info button { border-color:#425969; background:#17232c; color:#e1ebf0; }
+.arena-hero { min-height:328px; border-color:#345365; border-radius:11px; background:radial-gradient(ellipse at 75% 45%,#3cdae51c,transparent 42%),linear-gradient(120deg,#111a23,#0d141b); }
+.arena-hero>div:first-child { max-width:560px; }
+.arena-hero p:not(.eyebrow) { color:#9cabb7; font-size:12px; }
+.arena-score { border-color:#476171; background:#0d151dca; box-shadow:0 0 50px #54d7e51a; }
+.arena-score small,.arena-score span { color:#92a8b7; }
+.arena-score b { color:#e5f5fa; }
+.profile-metric,.wallet-concept,.rwa-note { border-color:#314959; background:#101821; }
+.profile-metric b,.wallet-concept h2 { color:#f0f4f7; }
+.status-tag { border-color:#f0b90b4d; color:#e5c452; }
+.history-row { border-color:#263b4b; color:#c2ced7; }
+.sealed-pack-row { border-color:#3e4d4b; background:linear-gradient(100deg,#f0b90b0b,#101820); }
+.sealed-pack-row>span b { color:#eef4f6; }
+.sealed-pack-row>span small { color:#8fa1aa; }
+.site-footer { border-color:#293e4f; color:#8b9daa; }
+.site-footer a:hover,.site-footer button { color:#edc23d; }
+.site-footer button { background:transparent; }
+.toast { border-color:#597175; background:#111b22; color:#eef4f6; box-shadow:0 15px 44px #0009; }
+.pack-dialog,.sell-dialog { border-color:#6c5c2b; background:radial-gradient(ellipse at 50% 22%,#152631,#0b1118 72%); box-shadow:0 24px 100px #000b; }
+.pack-results h2,.sell-dialog h2 { color:#f0f5f8; }
+.dialog-close { color:#bdcbd3; }
+.rwa-note b { color:#f0d166; }
+.rwa-note span { color:#9aacb7; }
+.fusion-stage>span,.fusion-stage>h2 { color:#dce6ec; }
+
+@media (min-width: 1200px) {
+  .hero-grid { grid-template-columns:.9fr 1.1fr; }
+  .catalog-grid { grid-template-columns:repeat(5,minmax(0,1fr)); gap:20px; }
+  .card-strip { grid-template-columns:repeat(6,minmax(0,1fr)); }
+}
+@media (max-width: 1050px) {
+  .main-nav { gap:0; }
+  .nav-item { padding-inline:7px; font-size:9px; }
+  .brand { min-width:160px; }
+  .hero-grid { min-height:490px; }
+  .hero-art { height:415px; }
+  .catalog-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+}
+@media (max-width: 790px) {
+  .topbar { height:66px; padding-inline:17px; }
+  .topbar::after { left:17px; right:17px; }
+  .main-nav { top:65px; border:1px solid #324859; background:#0c131a; box-shadow:0 20px 35px #000a; }
+  .nav-item { padding:13px 12px; font-size:10px; }
+  main { padding-inline:17px; }
+  .view { padding-top:24px; }
+  .hero-grid { min-height:auto; grid-template-columns:1fr; gap:5px; padding:30px 20px 19px; border-radius:11px; }
+  .hero-copy { padding:0; }
+  .hero-copy h1 { margin-top:19px; font-size:clamp(55px,15vw,82px); }
+  .hero-lead { max-width:560px; margin:20px 0 22px; font-size:12px; }
+  .hero-stats { margin-top:26px; }
+  .hero-art { height:360px; margin-top:-4px; }
+  .show-card { width:clamp(170px,45vw,220px); }
+  .crypto-constellation { grid-template-columns:1fr 1fr 1fr; padding:10px; }
+  .crypto-constellation-title { grid-column:1/-1; }
+  .crypto-asset { justify-content:center; padding:9px 3px; }
+  .crypto-asset b { font-size:7px; }
+  .demo-banner { align-items:flex-start; flex-wrap:wrap; margin:16px 0 35px; }
+  .demo-banner div:nth-child(2) { min-width:calc(100% - 53px); }
+  .demo-banner .text-button { margin-left:49px; }
+  .feature-grid { grid-template-columns:1fr; }
+  .feature-tile { height:130px; }
+  .section-head h2 { font-size:19px; }
+  .page-heading { align-items:flex-start; margin-bottom:22px; }
+  .page-heading h1,.arena-hero h1 { font-size:44px; }
+  .catalog-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .tcg-card-head { min-height:30px; padding:6px 6px 2px; }
+  .tcg-card-head>b { font-size:7px; }
+  .rarity-badge { padding:3px 4px; font-size:6px; }
+  .tcg-card-meta { padding-inline:6px; font-size:5px; }
+  .tcg-card-art { margin-inline:5px; }
+  .tcg-card-skill { min-height:47px; margin-inline:5px; padding:6px; }
+  .tcg-card-skill p { font-size:7px; }
+  .tcg-card-chain-marks { margin-inline:6px; font-size:4px; }
+  .tcg-card-chain-marks span:first-child { font-size:5px; }
+  .tcg-card-stats { margin-inline:6px; }
+  .nft-edition { left:6px; bottom:6px; font-size:4px; }
+  .crypto-crest { width:30px; height:33px; top:6px; right:6px; }
+  .crypto-crest b { font-size:13px; }
+  .element-glyph { right:6px; bottom:6px; min-width:24px; height:18px; font-size:6px; }
+  .rarity-odds { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .rarity-odds>div { padding:9px; }
+  .pack-stage-inner { grid-template-columns:1fr; }
+  .pack-scene { min-height:260px; }
+  .pack-stage-copy { padding:8px 5px 17px; }
+  .market-toolbar { align-items:stretch; flex-wrap:wrap; }
+  .market-toolbar .filter-tabs { overflow:auto; max-width:100%; }
+  .market-toolbar select { flex:1; }
+  .arena-hero { min-height:350px; padding:25px 20px; }
+  .arena-hero>div:first-child { max-width:82%; }
+  .arena-hero p:not(.eyebrow) { font-size:10px; }
+  .profile-columns { grid-template-columns:1fr; }
+}
+@media (max-width: 460px) {
+  .brand { gap:9px; }
+  .brand small { font-size:6px; }
+  .profile-button { gap:5px; padding-right:8px; }
+  .profile-button>span:nth-child(2) { display:none; }
+  .hero-art { height:315px; }
+  .show-card { width:clamp(154px,44vw,185px); }
+  .chip-one,.chip-two { font-size:6px; padding:6px; }
+  .crypto-constellation-title { gap:6px; font-size:6px; }
+  .crypto-coin-mark { width:22px; height:22px; }
+  .crypto-asset { gap:4px; }
+  .crypto-asset b { font-size:6px; }
+  .crypto-asset small { font-size:6px; }
+  .catalog-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .tcg-card-head>b { max-width:58%; font-size:8px; }
+  .tcg-card-meta { font-size:6px; }
+  .tcg-card-skill { min-height:49px; }
+  .tcg-card-skill>span { font-size:6px; }
+  .tcg-card-skill p { font-size:8px; }
+  .tcg-card-chain-marks { font-size:5px; }
+  .tcg-card-chain-marks span:first-child { font-size:6px; }
+  .page-heading h1 { font-size:39px; }
+  .market-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .market-item-info { padding:8px; }
+  .market-item-info button { padding:8px 4px; font-size:8px; }
+  .hero-stats span { font-size:7px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; }
+}

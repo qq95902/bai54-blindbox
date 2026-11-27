@@ -1,0 +1,914 @@
+/* Original BAI card face: familiar physical TCG hierarchy without third-party marks. */
+.catalog-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: start;
+  gap: 20px;
+}
+
+.tcg-card {
+  padding: 5px;
+  border: 1px solid color-mix(in srgb, var(--rarity-color) 74%, #fff 10%);
+  border-radius: 12px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--rarity-color) 82%, #fff 10%), #35312d 32%, color-mix(in srgb, var(--rarity-color) 42%, #17191a));
+  box-shadow: 0 9px 24px #0005, inset 0 0 0 1px #ffffff25;
+}
+
+.tcg-card-inner {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  border: 1px solid color-mix(in srgb, var(--rarity-color) 52%, #fff 8%);
+  border-radius: 8px;
+  background: linear-gradient(160deg, #292b29, #191b1b 54%, #121414);
+}
+
+.tcg-card-inner:after {
+  background: linear-gradient(118deg, transparent 18%, #ffffff0a 38%, transparent 54%);
+}
+
+.tcg-card-head {
+  align-items: center;
+  gap: 5px;
+  padding: 0 1px 5px;
+  color: #f2eee2;
+  letter-spacing: 0;
+}
+
+.tcg-card-head > b {
+  min-width: 0;
+  overflow: hidden;
+  color: #f4f0e6;
+  font: 700 12px/1.2 var(--sans);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rarity-badge {
+  flex: none;
+  padding: 3px 5px;
+  border: 1px solid color-mix(in srgb, var(--rarity-color) 75%, #fff 15%);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--rarity-color) 17%, #141615);
+  color: var(--rarity-color);
+  font: 700 7px/1 var(--mono);
+  white-space: nowrap;
+}
+
+.tcg-card-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+  padding: 0 1px 6px;
+  color: #a7afa6;
+  font: 7px/1.35 var(--mono);
+}
+
+.tcg-card-meta span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tcg-card-meta span:last-child {
+  flex: none;
+  color: color-mix(in srgb, var(--rarity-color) 78%, #e9e4d5);
+}
+
+.tcg-card-art {
+  aspect-ratio: .9;
+  margin: 0;
+  border: 2px solid color-mix(in srgb, var(--rarity-color) 70%, #fff 8%);
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1px #0a0b0b99, 0 3px 10px #0005;
+}
+
+.tcg-card-image {
+  object-position: center 28%;
+}
+
+.tcg-card-art.has-illustration:after {
+  inset: 4px;
+  border-color: color-mix(in srgb, var(--rarity-color) 48%, #fff 10%);
+}
+
+/* Each illustration carries a distinct major-asset crest inside the artwork. */
+.crypto-crest {
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  width: 43px;
+  height: 48px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  border: 1px solid color-mix(in srgb, var(--crypto-color) 78%, #fff 22%);
+  border-radius: 45% 45% 48% 48%;
+  background: linear-gradient(155deg, color-mix(in srgb, var(--crypto-color) 40%, #171b22), #11151ddd 72%);
+  color: var(--crypto-color);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--crypto-color) 46%, transparent), inset 0 0 0 2px #ffffff12;
+  text-shadow: 0 0 8px currentColor;
+  pointer-events: none;
+}
+
+.crypto-crest:before {
+  position: absolute;
+  inset: 3px;
+  border: 1px solid color-mix(in srgb, var(--crypto-color) 40%, transparent);
+  border-radius: inherit;
+  content: '';
+}
+
+.crypto-crest b {
+  z-index: 1;
+  font: 700 18px/1 var(--sans);
+}
+
+.crypto-crest small {
+  z-index: 1;
+  font: 700 6px/1 var(--mono);
+  letter-spacing: .04em;
+}
+
+.element-glyph {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border: 1px solid #fff9;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--rarity-color) 78%, #111);
+  color: #fff;
+  font: 700 9px var(--sans);
+  box-shadow: 0 2px 7px #0009;
+}
+
+.tcg-card-name {
+  padding: 5px 1px 0;
+}
+
+.tcg-card-name small {
+  color: #c3c8bf;
+  font-size: 7px;
+  letter-spacing: .09em;
+}
+
+.tcg-card-skill {
+  display: none;
+}
+
+.catalog-grid > .tcg-card .tcg-card-skill {
+  display: block;
+  min-height: 50px;
+  margin-top: 5px;
+  padding: 7px 8px;
+  border: 1px solid #ffffff14;
+  border-radius: 5px;
+  background: linear-gradient(100deg, color-mix(in srgb, var(--rarity-color) 10%, #171918), #171918);
+}
+
+.tcg-card-skill > span {
+  color: var(--rarity-color);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.tcg-card-skill p {
+  display: -webkit-box;
+  margin: 3px 0 0;
+  overflow: hidden;
+  color: #b4bcb2;
+  font-size: 8px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.tcg-card-stats {
+  align-items: center;
+  gap: 4px;
+  margin: 6px 1px 0;
+  padding-top: 6px;
+  border-top: 1px solid color-mix(in srgb, var(--rarity-color) 32%, #ffffff18);
+  color: #aeb5aa;
+}
+
+.tcg-card-stats b {
+  color: #f1eee4;
+}
+
+.tcg-card-number {
+  margin-left: auto;
+  color: #828d83;
+  font-size: 6px;
+  white-space: nowrap;
+}
+
+.tcg-card-chain-marks {
+  display: none;
+}
+
+.catalog-grid > .tcg-card .tcg-card-chain-marks {
+  display: flex;
+  gap: 8px;
+  margin: 5px 1px 0;
+  color: #aab2a7;
+  font: 700 6px/1 var(--mono);
+  letter-spacing: .04em;
+}
+
+.tcg-card-chain-marks span:first-child {
+  font-weight: 800;
+}
+
+.tcg-card-chain-marks span:last-child {
+  color: #748078;
+  font-size: 5px;
+  margin-left: auto;
+}
+
+.mark-btc { color: #f0a15a; }
+.mark-eth { color: #c1b7e9; }
+.mark-bnb {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #f2cc58;
+}
+
+.mark-bnb svg {
+  width: 8px;
+  height: 8px;
+}
+
+.tcg-card.r-SR {
+  background: linear-gradient(135deg, #b8e2e5, #397a87 24%, #292e32 42%, #85d4d9 76%, #292d32);
+}
+
+.tcg-card.r-SSR {
+  background: linear-gradient(135deg, #f2dbff, #7656a8 24%, #292331 43%, #bd8bf1 72%, #312747);
+}
+
+.tcg-card.r-UR {
+  background: linear-gradient(135deg, #ffe9aa, #cc8e50 22%, #34251d 43%, #f0bd6a 74%, #513322);
+}
+
+.tcg-card.r-SSR .tcg-card-inner:after,
+.tcg-card.r-UR .tcg-card-inner:after {
+  background: linear-gradient(118deg, transparent 17%, #ffffff07 30%, #ffffff28 38%, #a5dffff0 41%, #ffffff08 46%, transparent 54%);
+  mix-blend-mode: screen;
+}
+
+.catalog-grid > .tcg-card:hover {
+  transform: translateY(-4px);
+}
+
+.deck-pick .tcg-card-meta,
+.deck-pick .tcg-card-name,
+.deck-pick .tcg-card-skill,
+.deck-pick .tcg-card-chain-marks,
+.deck-slot .tcg-card-meta,
+.deck-slot .tcg-card-name,
+.deck-slot .tcg-card-skill,
+.deck-slot .tcg-card-chain-marks {
+  display: none;
+}
+
+.crypto-constellation {
+  display: grid;
+  grid-template-columns: 1fr repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: 14px;
+  margin: -17px 0 28px;
+  padding: 14px 18px;
+  border: 1px solid #ffffff16;
+  border-radius: 10px;
+  background: linear-gradient(105deg, #171a1a, #20201b 52%, #171918);
+  box-shadow: inset 0 1px #ffffff08;
+}
+
+.crypto-constellation-title {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: #7e8982;
+  font: 8px var(--mono);
+  letter-spacing: .14em;
+}
+
+.crypto-constellation-title i {
+  width: 32px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+}
+
+.crypto-constellation-title small {
+  color: #c5c8b9;
+  font-size: 8px;
+  letter-spacing: .04em;
+}
+
+.crypto-asset {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border: 1px solid #ffffff12;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ffffff08, transparent 70%);
+}
+
+.crypto-coin-mark {
+  width: 29px;
+  height: 29px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font: 700 19px/1 var(--sans);
+}
+
+.crypto-asset > span:last-child {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.crypto-asset b {
+  overflow: hidden;
+  color: #ebe9df;
+  font: 700 8px var(--mono);
+  letter-spacing: .08em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crypto-asset small {
+  color: #929c93;
+  font: 7px var(--mono);
+  letter-spacing: .1em;
+}
+
+.crypto-btc .crypto-coin-mark {
+  border: 1px solid #f7931a;
+  background: radial-gradient(circle at 35% 25%, #f7b15f, #c76c18);
+  color: #fff3dc;
+  box-shadow: 0 0 16px #f7931a25;
+}
+
+.crypto-eth .crypto-coin-mark {
+  padding: 5px;
+  border: 1px solid #9288c7;
+  background: radial-gradient(circle, #6e659c, #272536 72%);
+  color: #d7d2f2;
+  box-shadow: 0 0 16px #8980c428;
+}
+
+.crypto-bnb .crypto-coin-mark {
+  padding: 6px;
+  border: 1px solid #d9b84c;
+  background: radial-gradient(circle, #40371c, #1d1b16 72%);
+  color: #f3cb4b;
+  box-shadow: 0 0 16px #f0c64c24;
+}
+
+@media (max-width: 790px) {
+  .crypto-constellation {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    margin: -15px 0 24px;
+    padding: 9px;
+  }
+
+  .crypto-constellation-title {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .crypto-constellation-title i {
+    display: none;
+  }
+
+  .crypto-asset {
+    gap: 6px;
+    padding: 7px 6px;
+  }
+
+  .crypto-coin-mark {
+    width: 25px;
+    height: 25px;
+  }
+
+  .crypto-asset b {
+    font-size: 6px;
+  }
+}
+
+.deck-pick .tcg-card-head > b {
+  font-size: 8px;
+}
+
+.deck-pick .rarity-badge {
+  font-size: 6px;
+}
+
+@media (max-width: 1120px) {
+  .catalog-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+@media (max-width: 790px) {
+  .catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px;
+  }
+}
+
+@media (max-width: 440px) {
+  .catalog-grid {
+    gap: 9px;
+  }
+
+  .catalog-grid > .tcg-card .tcg-card-inner {
+    padding: 6px;
+  }
+
+  .catalog-grid > .tcg-card .tcg-card-head > b {
+    font-size: 10px;
+  }
+
+  .tcg-card-meta {
+    font-size: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tcg-card,
+  .tcg-card:hover {
+    transition: none;
+  }
+}
+
+/* Full-art frame pass: artwork leads, the card UI stays quiet and legible. */
+.tcg-card {
+  --rarity-color: #c3cbc3;
+  position: relative;
+  aspect-ratio: .72;
+  padding: 3px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--rarity-color) 72%, #fff 10%);
+  border-radius: 14px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--rarity-color) 82%, #fff 12%), #13171b 42%, color-mix(in srgb, var(--rarity-color) 50%, #17191a));
+  box-shadow: 0 8px 24px #0007, inset 0 0 0 1px #ffffff25;
+  transition: transform .24s ease, box-shadow .24s ease;
+}
+
+.tcg-card.r-N { --rarity-color: #c3cbc3; }
+.tcg-card.r-R { --rarity-color: #87c6aa; }
+.tcg-card.r-SR { --rarity-color: #75c8d5; }
+.tcg-card.r-SSR { --rarity-color: #c4a0ee; }
+.tcg-card.r-UR { --rarity-color: #f2bd69; }
+
+.tcg-card-inner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid color-mix(in srgb, var(--rarity-color) 54%, #fff 12%);
+  border-radius: 10px;
+  background: #121519;
+}
+
+.tcg-card-inner:after {
+  z-index: 3;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(118deg, transparent 16%, #ffffff08 36%, #ffffff19 42%, transparent 52%);
+  pointer-events: none;
+}
+
+.tcg-card-art {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: auto;
+  aspect-ratio: auto;
+  margin: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: inherit;
+  background: #151a20;
+  box-shadow: none;
+}
+
+.tcg-card-art:after,
+.tcg-card-art.has-illustration:after {
+  inset: 0;
+  width: auto;
+  height: auto;
+  transform: none;
+  border: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, #0710188c 0%, transparent 25%, transparent 48%, #090e18a8 66%, #070a0eeF 100%);
+  pointer-events: none;
+}
+
+.tcg-card-image {
+  object-position: center 32%;
+  filter: saturate(1.08) contrast(1.025);
+  transition: transform .45s ease, filter .45s ease;
+}
+
+.catalog-grid > .tcg-card:hover .tcg-card-image {
+  transform: scale(1.035);
+  filter: saturate(1.16) contrast(1.04);
+}
+
+.tcg-card-head {
+  position: absolute;
+  z-index: 5;
+  top: 11px;
+  left: 12px;
+  right: 10px;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  color: #fff;
+  letter-spacing: 0;
+  text-shadow: 0 2px 10px #000c;
+}
+
+.tcg-card-head > b {
+  color: #fffdf6;
+  font: 700 13px/1.2 var(--sans);
+  letter-spacing: .01em;
+}
+
+.rarity-badge {
+  padding: 4px 7px;
+  border: 1px solid color-mix(in srgb, var(--rarity-color) 80%, #fff 20%);
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--rarity-color) 27%, #111923dd);
+  color: color-mix(in srgb, var(--rarity-color) 72%, #fff);
+  font: 800 9px/1 var(--mono);
+  letter-spacing: .02em;
+  box-shadow: 0 2px 9px #0008;
+}
+
+.tcg-card-meta {
+  position: absolute;
+  z-index: 5;
+  top: 31px;
+  left: 12px;
+  right: 12px;
+  gap: 5px;
+  padding: 0;
+  color: #ffffffc4;
+  font: 8px/1.35 var(--mono);
+  text-shadow: 0 1px 6px #000d;
+}
+
+.tcg-card-meta span:last-child {
+  color: #ffffffa0;
+}
+
+.crypto-crest {
+  top: 58px;
+  left: auto;
+  right: 10px;
+  width: 38px;
+  height: 43px;
+  border-radius: 42% 42% 50% 50%;
+  background: linear-gradient(155deg, color-mix(in srgb, var(--crypto-color) 42%, #151a22), #0d1119e8 76%);
+  box-shadow: 0 3px 15px #0008, 0 0 15px color-mix(in srgb, var(--crypto-color) 32%, transparent), inset 0 0 0 2px #ffffff12;
+}
+
+.crypto-crest b { font-size: 16px; }
+.crypto-crest small { font-size: 5px; }
+
+.element-glyph {
+  z-index: 2;
+  right: 11px;
+  bottom: 11px;
+  width: 25px;
+  height: 25px;
+  border: 1px solid #ffffff8c;
+  background: #10151bb8;
+  font-size: 10px;
+  backdrop-filter: blur(4px);
+}
+
+.tcg-card-name {
+  position: absolute;
+  z-index: 5;
+  right: 12px;
+  bottom: 81px;
+  left: 12px;
+  padding: 0;
+  text-shadow: 0 1px 7px #000;
+}
+
+.tcg-card-name small {
+  color: #ffffffbd;
+  font: 700 8px/1.2 var(--mono);
+  letter-spacing: .12em;
+}
+
+.catalog-grid > .tcg-card .tcg-card-skill {
+  position: absolute;
+  z-index: 5;
+  right: 11px;
+  bottom: 33px;
+  left: 11px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  text-shadow: 0 1px 7px #000;
+}
+
+.tcg-card-skill > span {
+  color: color-mix(in srgb, var(--rarity-color) 62%, #fff);
+  font-size: 9px;
+}
+
+.tcg-card-skill p {
+  margin-top: 3px;
+  color: #f1f1e8;
+  font-size: 8px;
+  line-height: 1.4;
+  -webkit-line-clamp: 2;
+}
+
+.tcg-card-chain-marks { display: none !important; }
+
+.tcg-card-stats {
+  position: absolute;
+  z-index: 5;
+  right: 10px;
+  bottom: 9px;
+  left: 10px;
+  display: flex;
+  justify-content: flex-start;
+  gap: 11px;
+  margin: 0;
+  padding: 6px 0 0;
+  border-top: 1px solid #ffffff42;
+  color: #ffffffc4;
+  font: 8px/1.2 var(--mono);
+  text-shadow: 0 1px 6px #000c;
+}
+
+.tcg-card-stats b { color: #fff; font-size: 10px; }
+.tcg-card-number { margin-left: auto; color: #ffffffa0; font-size: 6px; }
+
+.catalog-grid > .tcg-card:hover {
+  transform: translateY(-5px) scale(1.012);
+  box-shadow: 0 16px 32px #000a, 0 0 18px color-mix(in srgb, var(--rarity-color) 30%, transparent);
+}
+
+.catalog-grid .tcg-card-stats,
+.market-grid .tcg-card-stats,
+#featured-cards .tcg-card-stats {
+  display: flex;
+}
+
+.deck-pick .tcg-card-head,
+.deck-slot .tcg-card-head { top: 7px; left: 7px; right: 7px; }
+.deck-pick .tcg-card-meta,
+.deck-slot .tcg-card-meta,
+.deck-pick .tcg-card-name,
+.deck-slot .tcg-card-name,
+.deck-pick .tcg-card-skill,
+.deck-slot .tcg-card-skill,
+.deck-pick .tcg-card-stats,
+.deck-slot .tcg-card-stats { display: none !important; }
+
+@media (max-width: 440px) {
+  .tcg-card-head { top: 9px; left: 9px; right: 8px; }
+  .tcg-card-head > b { font-size: 10px; }
+  .rarity-badge { padding: 3px 5px; font-size: 7px; }
+  .tcg-card-meta { top: 26px; left: 9px; right: 9px; font-size: 6px; }
+  .crypto-crest { top: 48px; right: 8px; width: 33px; height: 38px; }
+  .crypto-crest b { font-size: 14px; }
+  .tcg-card-name { right: 9px; bottom: 72px; left: 9px; }
+  .catalog-grid > .tcg-card .tcg-card-skill { right: 9px; bottom: 29px; left: 9px; }
+  .tcg-card-stats { right: 8px; bottom: 8px; left: 8px; gap: 8px; }
+}
+
+/* Editorial card layout: separate the illustration from the readable card data. */
+.catalog-grid > .tcg-card {
+  aspect-ratio: .72;
+  padding: 3px;
+  border: 1px solid color-mix(in srgb, var(--rarity-color) 82%, #17191b 18%);
+  border-radius: 13px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--rarity-color) 72%, #fff 8%), #17191b 35%, color-mix(in srgb, var(--rarity-color) 42%, #111315));
+  box-shadow: 0 12px 28px #0008, 0 0 12px color-mix(in srgb, var(--rarity-color) 12%, transparent), inset 0 0 0 1px #ffffff20;
+}
+
+.catalog-grid > .tcg-card .tcg-card-inner {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  gap: 0;
+  padding: 9px;
+  border: 1px solid #ffffff24;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #1c2023, #121518 72%);
+}
+
+.catalog-grid > .tcg-card .tcg-card-inner:after { display: none; }
+
+.catalog-grid > .tcg-card .tcg-card-head {
+  position: static;
+  min-height: 27px;
+  justify-content: space-between;
+  gap: 5px;
+  padding: 0 0 5px;
+  text-shadow: none;
+}
+
+.catalog-grid > .tcg-card .tcg-card-head > b {
+  font-size: clamp(12px, 1.05vw, 15px);
+}
+
+.catalog-grid > .tcg-card .rarity-badge {
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--rarity-color) 16%, #101315);
+  font-size: 9px;
+  box-shadow: none;
+}
+
+.catalog-grid > .tcg-card .tcg-card-meta {
+  position: static;
+  min-height: 20px;
+  align-items: center;
+  padding: 0 0 6px;
+  border-top: 1px solid #ffffff14;
+  color: #aeb5b2;
+  font-size: 8px;
+  text-shadow: none;
+}
+
+.catalog-grid > .tcg-card .tcg-card-art {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  aspect-ratio: auto;
+  border: 1px solid color-mix(in srgb, var(--rarity-color) 48%, #fff 10%);
+  border-radius: 5px;
+  background: #11161b;
+  box-shadow: inset 0 0 22px #0005;
+}
+
+.catalog-grid > .tcg-card .tcg-card-art:after,
+.catalog-grid > .tcg-card .tcg-card-art.has-illustration:after {
+  inset: 0;
+  background: linear-gradient(180deg, transparent 58%, #06090c38 100%);
+}
+
+.catalog-grid > .tcg-card .tcg-card-image {
+  object-position: center 30%;
+}
+
+.catalog-grid > .tcg-card .crypto-crest {
+  top: 9px;
+  right: 9px;
+  left: auto;
+  width: 37px;
+  height: 40px;
+  border-radius: 9px;
+  background: #10151bd9;
+  box-shadow: 0 4px 12px #0008, inset 0 0 0 1px #ffffff1c;
+}
+
+.catalog-grid > .tcg-card .crypto-crest:before { display: none; }
+.catalog-grid > .tcg-card .crypto-crest b { font-size: 16px; }
+.catalog-grid > .tcg-card .crypto-crest small { font-size: 5px; }
+
+.catalog-grid > .tcg-card .element-glyph {
+  right: 9px;
+  bottom: 9px;
+  width: 25px;
+  height: 25px;
+  border-color: #ffffff9c;
+  background: #10151be8;
+  font-size: 10px;
+}
+
+.catalog-grid > .tcg-card .tcg-card-name {
+  position: static;
+  min-height: 28px;
+  padding: 7px 1px 3px;
+  text-shadow: none;
+}
+
+.catalog-grid > .tcg-card .tcg-card-name small {
+  color: #c0c7c3;
+  font-size: 9px;
+  letter-spacing: .12em;
+}
+
+.catalog-grid > .tcg-card .tcg-card-skill {
+  position: static;
+  min-height: 45px;
+  margin: 0;
+  padding: 7px 8px;
+  border: 1px solid #ffffff12;
+  border-left: 2px solid color-mix(in srgb, var(--rarity-color) 76%, #fff 8%);
+  border-radius: 4px;
+  background: linear-gradient(100deg, color-mix(in srgb, var(--rarity-color) 9%, #171a1d), #171a1d 72%);
+  text-shadow: none;
+}
+
+.catalog-grid > .tcg-card .tcg-card-skill > span {
+  color: color-mix(in srgb, var(--rarity-color) 70%, #fff 18%);
+  font-size: 10px;
+}
+
+.catalog-grid > .tcg-card .tcg-card-skill p {
+  margin-top: 3px;
+  color: #d0d5d1;
+  font-size: 10px;
+  line-height: 1.45;
+  -webkit-line-clamp: 2;
+}
+
+.catalog-grid > .tcg-card .tcg-card-stats {
+  position: static;
+  min-height: 24px;
+  align-items: end;
+  gap: 12px;
+  margin: 0;
+  padding: 7px 1px 0;
+  border-top: 1px solid #ffffff1a;
+  color: #9da7a3;
+  font-size: 9px;
+  text-shadow: none;
+}
+
+.catalog-grid > .tcg-card .tcg-card-stats b { color: #f3f1e8; font-size: 10px; }
+.catalog-grid > .tcg-card .tcg-card-number { font-size: 6px; }
+
+.catalog-grid > .tcg-card.r-UR {
+  box-shadow: 0 12px 30px #0009, 0 0 18px #ec9b7224, inset 0 0 0 1px #fff3;
+}
+
+@media (max-width: 440px) {
+  .catalog-grid > .tcg-card .tcg-card-inner { padding: 6px; }
+  .catalog-grid > .tcg-card .tcg-card-head { min-height: 24px; }
+  .catalog-grid > .tcg-card .tcg-card-head > b { font-size: 10px; }
+  .catalog-grid > .tcg-card .rarity-badge { padding: 3px 5px; font-size: 7px; }
+  .catalog-grid > .tcg-card .tcg-card-meta { min-height: 18px; font-size: 6px; }
+  .catalog-grid > .tcg-card .crypto-crest { top: 7px; right: 7px; width: 31px; height: 34px; }
+  .catalog-grid > .tcg-card .tcg-card-name { min-height: 25px; padding-top: 6px; }
+  .catalog-grid > .tcg-card .tcg-card-skill { min-height: 42px; padding: 6px; }
+  .catalog-grid > .tcg-card .tcg-card-stats { min-height: 21px; gap: 8px; padding-top: 6px; }
+}
+
+.tcg-card-sprite {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background-repeat: no-repeat;
+  background-size: 200% auto;
+  background-position-x: var(--sprite-x);
+  background-position-y: 0%;
+  filter: saturate(1.08) contrast(1.025);
+}
+
+.tcg-card-sprite.sprite-row-bottom { background-position-y: 93%; }
+.catalog-grid .tcg-card-sprite.sprite-row-bottom { background-position-y: 67%; }
+
+.tcg-card-sprite.sheet-01 { background-image: url('../assets/tcg/crypto-cyber-3d-sheet-01.jpg'); }
+.tcg-card-sprite.sheet-02 { background-image: url('../assets/tcg/crypto-cyber-3d-sheet-02.jpg'); }
+.tcg-card-sprite.sheet-03 { background-image: url('../assets/tcg/crypto-cyber-3d-sheet-03.jpg'); }
+.tcg-card-sprite.sheet-04 { background-image: url('../assets/tcg/crypto-cyber-3d-sheet-04.jpg'); }
+.tcg-card-sprite.sheet-05 { background-image: url('../assets/tcg/crypto-cyber-3d-sheet-05.jpg'); }
+.tcg-card-sprite.sheet-06 { background-image: url('../assets/tcg/crypto-cyber-3d-sheet-06.jpg'); }
+.tcg-card-sprite.sheet-07 { background-image: url('../assets/tcg/crypto-cyber-3d-sheet-07.jpg'); }
+.tcg-card-sprite.sheet-08 { background-image: url('../assets/tcg/crypto-cyber-3d-sheet-08.jpg'); }
+.tcg-card-sprite.classic-sheet.sheet-01 { background-image: url('../assets/tcg/crypto-cyber-sheet-01.jpg'); }
+.tcg-card-sprite.classic-sheet.sheet-02 { background-image: url('../assets/tcg/crypto-cyber-sheet-02.jpg'); }
+.tcg-card-sprite.classic-sheet.sheet-03 { background-image: url('../assets/tcg/crypto-cyber-sheet-03.jpg'); }
+.tcg-card-sprite.classic-sheet.sheet-04 { background-image: url('../assets/tcg/crypto-cyber-sheet-04.jpg'); }
+.tcg-card-sprite.classic-sheet.sheet-05 { background-image: url('../assets/tcg/crypto-cyber-sheet-05.jpg'); }
+.tcg-card-sprite.classic-sheet.sheet-06 { background-image: url('../assets/tcg/crypto-cyber-sheet-06.jpg'); }
+.tcg-card-sprite.classic-sheet.sheet-07 { background-image: url('../assets/tcg/crypto-cyber-sheet-07.jpg'); }
+.tcg-card-sprite.classic-sheet.sheet-08 { background-image: url('../assets/tcg/crypto-cyber-sheet-08.jpg'); }
