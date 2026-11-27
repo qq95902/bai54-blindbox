@@ -2,7 +2,7 @@ name: Deploy static site to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/bai-tcg-v2]
   workflow_dispatch:
 
 permissions:
@@ -21,14 +21,31 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout publishing revision
         uses: actions/checkout@v4
+        with:
+          path: preview-source
+      - name: Checkout production site
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: site
+      - name: Assemble isolated TCG preview
+        if: github.ref_name == 'feature/bai-tcg-v2'
+        run: |
+          mkdir -p site/tcg-v2-preview
+          if [ -d preview-source/tcg-v2-preview ]; then
+            rsync -a preview-source/tcg-v2-preview/ site/tcg-v2-preview/
+          else
+            rsync -a --exclude='.git' preview-source/ site/tcg-v2-preview/
+          fi
+          touch site/tcg-v2-preview/.nojekyll
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: site
       - name: Deploy to Pages
         id: deployment
         uses: actions/deploy-pages@v4
