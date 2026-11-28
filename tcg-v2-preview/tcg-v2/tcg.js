@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const STORAGE_KEY = 'bai-tcg-v2-cyber-demo-v4';
+  const STORAGE_KEY = 'bai-tcg-v2-cyber-demo-v6';
   const CARD_SET_VERSION = 2;
   const LANG_KEY = 'bai54-language';
   let language = 'zh';
@@ -203,11 +203,24 @@
     'GC-075':['以太创世使者','Ethereum Genesis Herald','信标共识','抵消一次重击并恢复全队能量。','Beacon Consensus','Negates one heavy strike and restores squad energy.']
   });
   const PACKS = [
-    { id:'starter', name:'First Spark', nameZh:'初火', en:'FIRST SPARK', price:PACK_PRICE_USDT.starter, count:1, batchSize:800, rarityCounts:{N:560,R:192,SR:44,SSR:2,UR:2}, color:'#63cdb7' },
-    { id:'bronze', name:'Frontier Kit', nameZh:'前线补给', en:'FRONTIER KIT', price:PACK_PRICE_USDT.bronze, count:3, batchSize:600, rarityCounts:{N:360,R:150,SR:72,SSR:15,UR:3}, color:'#cd8c5a' },
-    { id:'gold', name:'Star Forge', nameZh:'星铸', en:'STAR FORGE', price:PACK_PRICE_USDT.gold, count:8, batchSize:400, rarityCounts:{N:180,R:120,SR:73,SSR:24,UR:3}, color:'#f0b90b' },
-    { id:'genesis', name:'Genesis Vault', nameZh:'创世宝库', en:'GENESIS VAULT', price:PACK_PRICE_USDT.genesis, count:15, batchSize:1500, rarityCounts:{N:420,R:450,SR:522,SSR:100,UR:8}, color:'#b88cff' }
+    { id:'starter', name:'First Spark', nameZh:'初火', en:'FIRST SPARK', price:PACK_PRICE_USDT.starter, count:5, batchSize:25000, rarityCounts:{N:23500,R:1250,SR:213,SSR:35,UR:2}, color:'#63cdb7' },
+    { id:'bronze', name:'Frontier Kit', nameZh:'前线补给', en:'FRONTIER KIT', price:PACK_PRICE_USDT.bronze, count:5, batchSize:15000, rarityCounts:{N:12900,R:1650,SR:375,SSR:68,UR:7}, color:'#cd8c5a' },
+    { id:'gold', name:'Star Forge', nameZh:'星铸', en:'STAR FORGE', price:PACK_PRICE_USDT.gold, count:5, batchSize:7500, rarityCounts:{N:5625,R:1350,SR:412,SSR:98,UR:15}, color:'#f0b90b' },
+    { id:'genesis', name:'Genesis Vault', nameZh:'创世宝库', en:'GENESIS VAULT', price:PACK_PRICE_USDT.genesis, count:5, batchSize:2500, rarityCounts:{N:1500,R:625,SR:275,SSR:87,UR:13}, color:'#b88cff' }
   ];
+  const TOTAL_CARD_SUPPLY = PACKS.reduce((sum, pack) => sum + pack.batchSize, 0);
+  const TOTAL_PACK_SUPPLY = PACKS.reduce((sum, pack) => sum + pack.batchSize / pack.count, 0);
+  const TOTAL_RARITY_SUPPLY = Object.fromEntries(RARITIES.map(rarity => [rarity.id, PACKS.reduce((sum, pack) => sum + pack.rarityCounts[rarity.id], 0)]));
+  const EDITION_SUPPLY_BY_CODE = (() => {
+    const supply = {};
+    for (const rarity of RARITIES) {
+      const templates = CARDS.filter(card => card.rarity === rarity.id);
+      const base = Math.floor(TOTAL_RARITY_SUPPLY[rarity.id] / templates.length);
+      const remainder = TOTAL_RARITY_SUPPLY[rarity.id] % templates.length;
+      templates.forEach((card, index) => { supply[card.code] = base + (index < remainder ? 1 : 0); });
+    }
+    return Object.freeze(supply);
+  })();
   const NEXT_RARITY = { N:'R', R:'SR', SR:'SSR', SSR:'UR' };
   const MARKET_SEED = [
     { id:'mkt-001',code:'GC-008',price:4.8,seller:'Wayfarer #018',listed:'12 min ago' },
@@ -260,7 +273,7 @@
     'Main navigation':'主导航','BNB CHAIN · CRYPTO GENESIS':'BNB 链 · 加密创世纪','Language':'语言','Discover':'发现','Card Packs':'卡包','Card Archive':'卡牌图鉴','Forge':'锻造','Trading Market':'交易市场','Arena':'竞技场','LOCAL DEMO':'本地演示','Collection':'卡册','Open menu':'打开菜单',
     'ORIGINAL TCG CARD SET':'原创 TCG 卡牌','Explore packs':'浏览卡包','View the archive':'查看图鉴','Cards':'卡牌','Rarity tiers':'稀有度','Pack tiers':'卡包档位','THE FIRST SIGNAL':'初始信号','CRYPTO ROOTS':'加密起源','Crypto Genesis motifs: Bitcoin, Ethereum and BNB Chain':'加密元素：比特币、以太币与 BNB Chain','Crypto':'加密','Genesis':'创世纪','GENESIS':'创世','S01 · GENESIS':'第 01 赛季 · 创世',
     'Choose a pack tier':'选择卡包档位','All':'全部','Collected':'已收集','Search name, ID or element':'搜索名称、编号或属性','3 × same card':'3 张相同卡牌','1 × next tier':'1 张高一级卡牌','Select cards':'选择卡牌','Select 3 cards':'选择 3 张卡牌','Sell':'出售','Market':'交易市场','VOLUME':'成交额','All tiers':'全部等级','Sort by price':'按价格排序','Featured':'推荐','Price: low to high':'价格从低到高','Price: high to low':'价格从高到低','My Collection':'我的卡册','Sealed packs':'未开启卡包','Opening history':'开包记录','Activity':'动态','Reset local demo':'重置本地演示','Close':'关闭','Sell a card':'出售卡牌','Card':'卡牌','Price':'价格','List':'挂单','Whitepaper':'白皮书','Load demo':'载入演示数据',
-    'DEMO BALANCE':'演示余额','QUANTITY':'数量','Get pack':'开包','Sold out':'已售罄','Insufficient balance':'余额不足','BATCH':'批次','LEFT':'剩余','Common':'普通','Rare':'稀有','Super Rare':'超稀有','Epic':'史诗','Legendary':'传说','No cards match this search.':'没有符合条件的卡牌。','No cards':'暂无卡牌','No listings':'暂无挂单','No packs':'暂无卡包','No openings':'暂无开包记录','No activity':'暂无动态','SQUAD POWER':'队伍战力','Whitepaper':'白皮书','Opening history':'开包记录','CURRENT BATCH':'当前批次',
+    'DEMO BALANCE':'演示余额','QUANTITY':'数量','Get pack':'开包','Sold out':'已售罄','Insufficient balance':'余额不足','BATCH':'批次','LEFT':'剩余','Common':'普通','Rare':'稀有','Super Rare':'超稀有','Epic':'史诗','Legendary':'传说','No cards match this search.':'没有符合条件的卡牌。','No cards':'暂无卡牌','No listings':'暂无挂单','No packs':'暂无卡包','No openings':'暂无开包记录','No activity':'暂无动态','SQUAD POWER':'队伍战力','Whitepaper':'白皮书','Opening history':'开包记录','CURRENT BATCH':'当前批次','Card designs':'卡面设计','Season packs':'赛季卡包','Card supply':'卡牌总量','Limited editions':'限量发行','Rarity tiers':'稀有等级','MAX ':'限量 ',
     'Selected':'已选择','Cards':'张卡牌','Demo balance':'演示余额','Unique':'不同卡牌','card':'张卡','cards':'张卡','Open':'开启','Remove':'移除','Add to squad':'编入队伍','Select card':'选择卡牌','Squad':'队伍','Enemy':'敌方','Void Echo':'虚空回响','SQUAD POWER':'队伍战力','Battle':'开始战斗','CLEARED':'胜利','DEFEATED':'失败','Elements':'属性','Faction':'阵营','CURRENT BATCH':'当前批次','BATCH':'批次','LEFT':'剩余',
     'GENESIS':'创世','GENESIS VAULT':'创世宝库','FIRST SPARK':'初火','FRONTIER KIT':'前线补给','STAR FORGE':'星铸','SEASON 01':'第 01 赛季','ORIGINAL CARD SET':'原创卡牌','CRYPTO GENESIS':'加密创世纪','BAI · GENESIS':'BAI · 创世','BAI TCG · CRYPTO GENESIS':'BAI TCG · 加密创世纪','CARD 018 / 075':'卡牌 018 / 075','BITCOIN':'比特币','BITCOIN · FIRE ELEMENT':'比特币 · 火属性','NOVA FORGE':'新星铸造','ETHER':'以太币','ETHEREUM':'以太坊','BNB CHAIN':'BNB Chain','FIRE ELEMENT':'火属性','GENESIS SSS':'创世 SSS','THE FIRST SIGNAL':'初始信号','Rarity':'稀有度','Legendary':'传说','JUST NOW':'刚刚','Just now':'刚刚','Buy':'购买','Sell':'出售','＋ Sell':'＋ 出售','Remove ×':'移出队伍 ×','Opening…':'开包中…','Pack opened':'卡包已开启','GENESIS PACK':'创世卡包','SEALED · SEASON 01':'已封装 · 第 01 赛季','Battle':'开始战斗','Open':'开启','Select card':'选择卡牌','Select 3 cards.':'请选择 3 张卡牌。','LOCAL DEMO':'本地演示','BNB CHAIN · CRYPTO GENESIS':'BNB 链 · 加密创世纪',
     'Reset demo?':'确定重置本地演示吗？','Demo loaded.':'演示数据已载入。','Reset.':'已重置。','Purchased.':'购买成功。','Listed.':'已挂单。','Sold':'已出售','No cards to sell.':'暂无可出售的卡牌。','Check card and price.':'请检查卡牌和价格。','Select 3 identical cards.':'请选择 3 张相同卡牌。','SSS is the top tier.':'SSS 已是最高等级。','Choose up to three forge materials.':'最多选择 3 张锻造材料。','Batch sold out.':'本批次已售罄。','Pack opened':'已开包','Card forge':'卡牌锻造','PVE simulation':'PVE 模拟','Demo market':'演示交易市场','Demo listing':'演示挂单','Sealed pack':'未开启卡包','Demo collection':'演示卡册'
@@ -378,14 +391,17 @@
   }
   function createBatchPools() {
     const pools = {};
+    const rarityCursor = Object.fromEntries(RARITIES.map(rarity => [rarity.id, 0]));
+    const editionCursor = Object.fromEntries(CARDS.map(card => [card.code, 0]));
     for (const pack of PACKS) {
       let serial = 0;
       const assets = [];
       for (const rarity of RARITIES) {
         const templates = CARDS.filter(card => card.rarity === rarity.id);
         for (let i=0; i<pack.rarityCounts[rarity.id]; i++) {
-          const template = templates[i % templates.length];
-          assets.push({ assetId:`${BATCH_ID}-${pack.id.toUpperCase()}-${String(++serial).padStart(4,'0')}`, code:template.code, rarity:rarity.id });
+          const template = templates[rarityCursor[rarity.id]++ % templates.length];
+          const editionNumber = ++editionCursor[template.code];
+          assets.push({ assetId:`${BATCH_ID}-${pack.id.toUpperCase()}-${String(++serial).padStart(4,'0')}`, code:template.code, rarity:rarity.id, editionNumber, editionSupply:EDITION_SUPPLY_BY_CODE[template.code] });
         }
       }
       for (let i=assets.length-1; i>0; i--) { const j=randomInt(i+1); [assets[i],assets[j]]=[assets[j],assets[i]]; }
@@ -393,8 +409,10 @@
     }
     return pools;
   }
-  function createOwnedCard(code, assetId = null) {
-    return { id:assetId || `demo-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`, code, assetId, acquiredAt:new Date().toISOString(), assetState:assetId?'Season 01 · numbered demo edition':'Demo collectible' };
+  function createOwnedCard(code, asset = null) {
+    const assetInfo = asset && typeof asset === 'object' ? asset : null;
+    const assetId = assetInfo?.assetId || (typeof asset === 'string' ? asset : null);
+    return { id:assetId || `demo-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`, code, assetId, editionNumber:assetInfo?.editionNumber ?? null, editionSupply:assetInfo?.editionSupply ?? EDITION_SUPPLY_BY_CODE[code] ?? null, acquiredAt:new Date().toISOString(), assetState:assetId?'Season 01 · numbered demo edition':'Demo collectible' };
   }
   function availablePacks(pack) {
     return Math.floor((state.batchPools?.[pack.id]?.length || 0) / pack.count);
@@ -447,7 +465,7 @@
     return `<article class="tcg-card ${rarityClass(base.rarity)}" title="${escapeHtml(displayName)} · ${escapeHtml(rarityName(rarity) || base.rarity)} · ${escapeHtml(elementTitle(base.element))}">
       <div class="tcg-card-inner"><div class="tcg-card-head"><b>${escapeHtml(displayName)}</b><span class="rarity-badge">${escapeHtml(rarityGrade(base.rarity))} <i>·</i> ${escapeHtml(rarityName(rarity) || base.rarity)}</span></div>
       <div class="tcg-card-meta"><span>${escapeHtml(elementTitle(base.element))} <i>·</i> ${escapeHtml(factionTitle(base.faction))}</span><span>${escapeHtml(base.code)}</span></div>
-      <div class="tcg-card-art ${base.sheet !== undefined || base.art?'has-illustration':''}">${base.sheet !== undefined?`<span class="tcg-card-sprite ${base.sheetSet==='classic'?'classic-sheet ':''}sheet-${String(base.sheet).padStart(2,'0')} ${base.sprite >= 2 ? 'sprite-row-bottom' : 'sprite-row-top'}" role="img" aria-label="${escapeHtml(displayName)} collectible art" style="--sprite-x:${(base.sprite%2)*100}%"></span>`:base.art?`<img class="tcg-card-image" src="${escapeHtml(base.art)}" alt="${escapeHtml(displayName)} collectible art" loading="lazy" decoding="async">`:`<span class="character-icon">${base.glyph}</span>`}<span class="crypto-crest" style="--crypto-color:${crypto?.color || '#f0b90b'}" title="${escapeHtml([crypto?.name, crypto?.ticker, crypto?.network].filter(Boolean).join(' · ') || 'Crypto')}" aria-label="${escapeHtml(crypto?.name || 'Crypto')} motif"><b>${escapeHtml(crypto?.mark || '◇')}</b><small>${escapeHtml(crypto?.ticker || 'CRYPTO')}</small></span><span class="element-glyph">${escapeHtml(elementTitle(base.element))}</span><span class="nft-edition">${card.assetId?escapeHtml(card.assetId):'S01 · GENESIS'}</span></div>
+      <div class="tcg-card-art ${base.sheet !== undefined || base.art?'has-illustration':''}">${base.sheet !== undefined?`<span class="tcg-card-sprite ${base.sheetSet==='classic'?'classic-sheet ':''}sheet-${String(base.sheet).padStart(2,'0')} ${base.sprite >= 2 ? 'sprite-row-bottom' : 'sprite-row-top'}" role="img" aria-label="${escapeHtml(displayName)} collectible art" style="--sprite-x:${(base.sprite%2)*100}%"></span>`:base.art?`<img class="tcg-card-image" src="${escapeHtml(base.art)}" alt="${escapeHtml(displayName)} collectible art" loading="lazy" decoding="async">`:`<span class="character-icon">${base.glyph}</span>`}<span class="crypto-crest" style="--crypto-color:${crypto?.color || '#f0b90b'}" title="${escapeHtml([crypto?.name, crypto?.ticker, crypto?.network].filter(Boolean).join(' · ') || 'Crypto')}" aria-label="${escapeHtml(crypto?.name || 'Crypto')} motif"><b>${escapeHtml(crypto?.mark || '◇')}</b><small>${escapeHtml(crypto?.ticker || 'CRYPTO')}</small></span><span class="element-glyph">${escapeHtml(elementTitle(base.element))}</span><span class="nft-edition">${card.assetId && card.editionNumber ? `ED. ${String(card.editionNumber).padStart(3,'0')} / ${String(card.editionSupply || EDITION_SUPPLY_BY_CODE[base.code]).padStart(3,'0')}` : card.id ? (language==='zh'?'演示卡':'DEMO') : `${language==='zh'?'限量':'MAX'} ${EDITION_SUPPLY_BY_CODE[base.code] || '—'}`}</span></div>
       <div class="tcg-card-skill"><span>${escapeHtml(skillName)}</span><p>${escapeHtml(skillDescription)}</p></div>
       <div class="tcg-card-stats"><span>ATK <b>${base.atk}</b></span><span>DEF <b>${base.def}</b></span></div></div>
       ${ownedCount ? `<span class="owned-count">×${ownedCount}</span>` : ''}<span class="sr-only">${escapeHtml(rarityGrade(base.rarity))} · ${escapeHtml(rarityName(rarity) || base.rarity)} · ${escapeHtml(skillName)}: ${escapeHtml(skillDescription)}</span></article>`;
@@ -629,7 +647,7 @@
     packRevealTimer = window.setTimeout(() => {
       packRevealTimer = null;
       if (!el('pack-dialog').open) return;
-      const cards = box.reservedAssets.map(asset=>createOwnedCard(asset.code,asset.assetId));
+      const cards = box.reservedAssets.map(asset=>createOwnedCard(asset.code,asset));
       state.inventory.push(...cards);
       state.sealedPacks = state.sealedPacks.filter(item => item.id !== box.id);
       const history = {name:pack.en,packs:1,count:cards.length,price:box.price,at:new Date().toLocaleString('en-US',{month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'})};
@@ -668,7 +686,7 @@
     state.usdt = (balanceCents-priceCents)/100;
     state.marketplaceFeePool = ((toCents(state.marketplaceFeePool || 0) ?? 0)+feeCents)/100;
     const volumeCents = toCents(state.marketVolume);
-    state.inventory.push(createOwnedCard(listing.code));
+    state.inventory.push(listing.cardSnapshot ? {...listing.cardSnapshot, id:`transfer-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`, acquiredAt:new Date().toISOString()} : createOwnedCard(listing.code));
     state.marketVolume = ((volumeCents ?? 0) + priceCents) / 100;
     state.market.splice(index,1);
     addActivity(`Bought ${cardTitle(cardByCode.get(listing.code))} · ${formatMoney(listing.price)} USDT`, 'Demo market'); save(); render(); toast('Purchased.');
