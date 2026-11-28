@@ -1,7 +1,8 @@
 (() => {
   'use strict';
 
-  const STORAGE_KEY = 'bai-tcg-v2-cyber-demo-v4'; // Copy refresh 2026-11-28
+  const STORAGE_KEY = 'bai-tcg-v2-cyber-demo-v4';
+  const CARD_SET_VERSION = 2;
   const LANG_KEY = 'bai54-language';
   let language = 'zh';
   try { language = localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'zh'; } catch {}
@@ -75,7 +76,22 @@
     { code:'GC-057',sprite:2,sheet:7,sheetSet:'classic',name:'密钥收藏家',en:'KEYSTONE KEEPER',rarity:'N',element:'暗',glyph:'₿',atk:47,def:38,skill:'密钥守藏：首次受到攻击时获得护盾。',faction:'比特熔炉'},
     { code:'GC-058',sprite:3,sheet:7,sheetSet:'classic',name:'区块学徒',en:'BLOCK APPRENTICE',rarity:'N',element:'光',glyph:'◇',atk:35,def:50,skill:'区块记录：揭示一项未知战场效果。',faction:'以太高庭'},
     { code:'GC-059',sprite:0,sheet:8,sheetSet:'classic',name:'莱特巡游者',en:'LITEWAYFARER',rarity:'N',element:'风',glyph:'Ł',atk:44,def:39,skill:'莱特疾行：有机会抢先行动。',faction:'银光车队'},
-    { code:'GC-060',sprite:1,sheet:8,sheetSet:'classic',name:'并行信标',en:'PARALLEL BEACON',rarity:'N',element:'暗',glyph:'✧',atk:40,def:45,skill:'并行信标：提升队伍下一次技能效果。',faction:'并行舰队'}
+    { code:'GC-060',sprite:1,sheet:8,sheetSet:'classic',name:'并行信标',en:'PARALLEL BEACON',rarity:'N',element:'暗',glyph:'✧',atk:40,def:45,skill:'并行信标：提升队伍下一次技能效果。',faction:'并行舰队'},
+    { code:'GC-061',sprite:2,sheet:8,sheetSet:'classic',name:'闪电巡链员',en:'LIGHTNING PATHFINDER',rarity:'N',element:'风',glyph:'Ł',atk:42,def:39,skill:'闪电通道：队伍首次行动后提高闪避。',faction:'银光车队'},
+    { code:'GC-062',sprite:3,sheet:8,sheetSet:'classic',name:'狗狗币信使',en:'DOGECOIN COURIER',rarity:'N',element:'光',glyph:'Ð',atk:45,def:37,skill:'迷因快递：闪避后为队友补充少量能量。',faction:'彗星游乐团'},
+    { code:'GC-063',sprite:0,sheet:1,sheetSet:'classic',name:'以太燃气术士',en:'ETHER GAS SAGE',rarity:'N',element:'火',glyph:'◇',atk:39,def:46,skill:'燃气调度：登场时小幅提升队伍防御。',faction:'以太高庭'},
+    { code:'GC-064',sprite:1,sheet:2,sheetSet:'classic',name:'BNB 节点学徒',en:'BNB NODE APPRENTICE',rarity:'R',element:'土',glyph:'◆',atk:48,def:53,skill:'节点协作：提升相邻队友的防御。',faction:'金链王庭'},
+    { code:'GC-065',sprite:2,sheet:3,sheetSet:'classic',name:'比特闪电信使',en:'BITCOIN LIGHTNING RUNNER',rarity:'R',element:'风',glyph:'₿',atk:56,def:48,skill:'闪电结算：先手攻击命中后追加链式伤害。',faction:'比特熔炉'},
+    { code:'GC-066',sprite:3,sheet:4,sheetSet:'classic',name:'索拉纳验证者',en:'SOLANA VALIDATOR',rarity:'R',element:'光',glyph:'≋',atk:51,def:57,skill:'高频共识：队伍行动后为随机队友充能。',faction:'远航公会'},
+    { code:'GC-067',sprite:0,sheet:5,sheetSet:'classic',name:'莱特币银翼',en:'LITECOIN SILVERWING',rarity:'R',element:'水',glyph:'Ł',atk:54,def:55,skill:'银翼确认：受到攻击时恢复少量耐久。',faction:'银光车队'},
+    { code:'GC-068',sprite:1,sheet:6,sheetSet:'classic',name:'比特减半守望者',en:'BITCOIN HALVING WARDEN',rarity:'SR',element:'火',glyph:'₿',atk:69,def:65,skill:'减半周期：首次攻击后提升全队攻击。',faction:'比特熔炉'},
+    { code:'GC-069',sprite:2,sheet:7,sheetSet:'classic',name:'以太二层领航员',en:'ETHEREUM LAYER TWO GUIDE',rarity:'SR',element:'风',glyph:'◇',atk:66,def:70,skill:'二层跃迁：降低队伍受到的下一次伤害。',faction:'以太高庭'},
+    { code:'GC-070',sprite:3,sheet:8,sheetSet:'classic',name:'瑞波账本裁决官',en:'XRP LEDGER ARBITER',rarity:'SR',element:'水',glyph:'✕',atk:72,def:63,skill:'账本终局：对已标记目标造成额外伤害。',faction:'账本守望'},
+    { code:'GC-071',sprite:0,sheet:2,sheetSet:'classic',name:'BNB 金链龙骑',en:'BNB GOLDCHAIN DRAGOON',rarity:'SSR',element:'土',glyph:'◆',atk:82,def:79,skill:'金链共振：为全队生成护盾并强化节点属性队友。',faction:'金链王庭'},
+    { code:'GC-072',sprite:1,sheet:4,sheetSet:'classic',name:'以太合约编织者',en:'ETH SMART CONTRACT WEAVER',rarity:'SSR',element:'光',glyph:'◇',atk:86,def:74,skill:'合约编织：复制一项队伍技能并强化其效果。',faction:'以太高庭'},
+    { code:'GC-073',sprite:2,sheet:6,sheetSet:'classic',name:'比特链上先知',en:'BITCOIN ONCHAIN ORACLE',rarity:'SSR',element:'暗',glyph:'₿',atk:80,def:83,skill:'链上预言：揭示敌方行动并抵消一次重击。',faction:'比特熔炉'},
+    { code:'GC-074',sprite:3,sheet:7,sheetSet:'classic',name:'中本聪·创世密钥',en:'SATOSHI · GENESIS KEY',rarity:'UR',element:'火',glyph:'₿',atk:100,def:96,skill:'创世密钥：为队伍抵挡一次重击，并强化下一次攻击。',faction:'比特熔炉'},
+    { code:'GC-075',sprite:0,sheet:8,sheetSet:'classic',name:'以太创世使者',en:'ETHEREUM GENESIS HERALD',rarity:'UR',element:'光',glyph:'◇',atk:97,def:99,skill:'信标共识：抵消一次重击并恢复全队能量。',faction:'以太高庭'}
   ];
   const CRYPTO_MOTIFS = [
     { ticker:'BTC', name:'Bitcoin', nameZh:'比特币', mark:'₿', color:'#f7931a' },
@@ -102,7 +118,10 @@
     'GC-037':'ADA','GC-038':'BTC','GC-039':'ETH','GC-040':'LTC','GC-041':'BNB','GC-042':'DOGE',
     'GC-043':'SOL','GC-044':'LINK','GC-045':'AVAX','GC-046':'DOT','GC-047':'MON','GC-048':'ADA',
     'GC-049':'LTC','GC-050':'XRP','GC-051':'BNB','GC-052':'DOGE','GC-053':'SOL','GC-054':'LINK',
-    'GC-055':'AVAX','GC-056':'DOT','GC-057':'BTC','GC-058':'ETH','GC-059':'LTC','GC-060':'MON'
+    'GC-055':'AVAX','GC-056':'DOT','GC-057':'BTC','GC-058':'ETH','GC-059':'LTC','GC-060':'MON',
+    'GC-061':'LTC','GC-062':'DOGE','GC-063':'ETH','GC-064':'BNB','GC-065':'BTC','GC-066':'SOL',
+    'GC-067':'LTC','GC-068':'BTC','GC-069':'ETH','GC-070':'XRP','GC-071':'BNB','GC-072':'ETH',
+    'GC-073':'BTC','GC-074':'BTC','GC-075':'ETH'
   });
   // Player-facing bilingual names and skill text. Keep the crypto motif in the
   // title, and make the card's role/ability read naturally in both languages.
@@ -166,7 +185,22 @@
     'GC-057':['密钥收藏家','Keykeeper','密钥保险库','首次受到攻击时获得护盾。','Key Vault','Gains a shield when first attacked.'],
     'GC-058':['区块学徒','Block Apprentice','区块索引','揭示一项尚未公开的战场效果。','Block Index','Reveals one undisclosed battlefield effect.'],
     'GC-059':['巡游者','Wayfarer','轻链疾行','有机会抢先行动。','Litecoin Sprint','May gain the first move.'],
-    'GC-060':['并行信标','Parallel Beacon','并行增幅','提升队伍下一次技能效果。','Parallel Boost','Boosts the squad’s next ability.']
+    'GC-060':['并行信标','Parallel Beacon','并行增幅','提升队伍下一次技能效果。','Parallel Boost','Boosts the squad’s next ability.'],
+    'GC-061':['莱特闪电巡链员','Litecoin Lightning Pathfinder','闪电通道','队伍首次行动后提高闪避。','Lightning Channel','Raises the squad’s evasion after its first move.'],
+    'GC-062':['狗狗币信使','Dogecoin Courier','迷因快递','闪避后为队友补充少量能量。','Meme Dispatch','Restores a little energy to an ally after evading.'],
+    'GC-063':['以太燃气术士','Ether Gas Sage','燃气调度','登场时小幅提升队伍防御。','Gas Routing','Slightly raises squad defense on deployment.'],
+    'GC-064':['BNB 节点学徒','BNB Node Apprentice','节点协作','提升相邻队友的防御。','Node Assist','Raises the defense of adjacent allies.'],
+    'GC-065':['比特闪电信使','Bitcoin Lightning Runner','闪电结算','先手攻击命中后追加链式伤害。','Lightning Settlement','Adds chained damage when the opening strike lands.'],
+    'GC-066':['索拉纳验证者','Solana Validator','高频共识','队伍行动后为随机队友充能。','Fast Consensus','Charges a random ally after the squad acts.'],
+    'GC-067':['莱特币银翼','Litecoin Silverwing','银翼确认','受到攻击时恢复少量耐久。','Silver Confirmation','Restores a little durability when attacked.'],
+    'GC-068':['比特减半守望者','Bitcoin Halving Warden','减半周期','首次攻击后提升全队攻击。','Halving Cycle','Raises squad attack after the first strike.'],
+    'GC-069':['以太二层领航员','Ethereum Layer Two Guide','二层跃迁','降低队伍受到的下一次伤害。','Layer Two Shift','Reduces the next damage taken by the squad.'],
+    'GC-070':['瑞波账本裁决官','XRP Ledger Arbiter','账本终局','对已标记目标造成额外伤害。','Ledger Verdict','Deals extra damage to a marked target.'],
+    'GC-071':['BNB 金链龙骑','BNB Golden Chain Dragoon','金链共振','为全队生成护盾并强化节点属性队友。','Golden Chain Resonance','Shields the squad and strengthens allied Node cards.'],
+    'GC-072':['以太合约编织者','Ethereum Contract Weaver','合约编织','复制一项队伍技能并强化其效果。','Contract Weave','Copies a squad ability and strengthens its effect.'],
+    'GC-073':['比特链上先知','Bitcoin Onchain Oracle','链上预言','揭示敌方行动并抵消一次重击。','Onchain Oracle','Reveals an enemy move and negates one heavy strike.'],
+    'GC-074':['中本聪','Satoshi Nakamoto','创世密钥','为队伍抵挡一次重击，并强化下一次攻击。','Genesis Key','Blocks one heavy strike and strengthens the squad’s next attack.'],
+    'GC-075':['以太创世使者','Ethereum Genesis Herald','信标共识','抵消一次重击并恢复全队能量。','Beacon Consensus','Negates one heavy strike and restores squad energy.']
   });
   const PACKS = [
     { id:'starter', name:'First Spark', nameZh:'初火', en:'FIRST SPARK', price:PACK_PRICE_USDT.starter, count:1, batchSize:800, rarityCounts:{N:560,R:192,SR:44,SSR:2,UR:2}, color:'#63cdb7' },
@@ -228,7 +262,7 @@
     'Choose a pack tier':'选择卡包档位','All':'全部','Collected':'已收集','Search name, ID or element':'搜索名称、编号或属性','3 × same card':'3 张相同卡牌','1 × next tier':'1 张高一级卡牌','Select cards':'选择卡牌','Select 3 cards':'选择 3 张卡牌','Sell':'出售','Market':'交易市场','VOLUME':'成交额','All tiers':'全部等级','Sort by price':'按价格排序','Featured':'推荐','Price: low to high':'价格从低到高','Price: high to low':'价格从高到低','My Collection':'我的卡册','Sealed packs':'未开启卡包','Opening history':'开包记录','Activity':'动态','Reset local demo':'重置本地演示','Close':'关闭','Sell a card':'出售卡牌','Card':'卡牌','Price':'价格','List':'挂单','Whitepaper':'白皮书','Load demo':'载入演示数据',
     'DEMO BALANCE':'演示余额','QUANTITY':'数量','Get pack':'开包','Sold out':'已售罄','Insufficient balance':'余额不足','BATCH':'批次','LEFT':'剩余','Common':'普通','Rare':'稀有','Super Rare':'超稀有','Epic':'史诗','Legendary':'传说','No cards match this search.':'没有符合条件的卡牌。','No cards':'暂无卡牌','No listings':'暂无挂单','No packs':'暂无卡包','No openings':'暂无开包记录','No activity':'暂无动态','SQUAD POWER':'队伍战力','Whitepaper':'白皮书','Opening history':'开包记录','CURRENT BATCH':'当前批次',
     'Selected':'已选择','Cards':'张卡牌','Demo balance':'演示余额','Unique':'不同卡牌','card':'张卡','cards':'张卡','Open':'开启','Remove':'移除','Add to squad':'编入队伍','Select card':'选择卡牌','Squad':'队伍','Enemy':'敌方','Void Echo':'虚空回响','SQUAD POWER':'队伍战力','Battle':'开始战斗','CLEARED':'胜利','DEFEATED':'失败','Elements':'属性','Faction':'阵营','CURRENT BATCH':'当前批次','BATCH':'批次','LEFT':'剩余',
-    'GENESIS':'创世','GENESIS VAULT':'创世宝库','FIRST SPARK':'初火','FRONTIER KIT':'前线补给','STAR FORGE':'星铸','SEASON 01':'第 01 赛季','ORIGINAL CARD SET':'原创卡牌','CRYPTO GENESIS':'加密创世纪','BAI · GENESIS':'BAI · 创世','BAI TCG · CRYPTO GENESIS':'BAI TCG · 加密创世纪','CARD 018 / 060':'卡牌 018 / 060','BITCOIN':'比特币','BITCOIN · FIRE ELEMENT':'比特币 · 火属性','NOVA FORGE':'新星铸造','ETHER':'以太币','ETHEREUM':'以太坊','BNB CHAIN':'BNB Chain','FIRE ELEMENT':'火属性','GENESIS SSS':'创世 SSS','THE FIRST SIGNAL':'初始信号','Rarity':'稀有度','Legendary':'传说','JUST NOW':'刚刚','Just now':'刚刚','Buy':'购买','Sell':'出售','＋ Sell':'＋ 出售','Remove ×':'移出队伍 ×','Opening…':'开包中…','Pack opened':'卡包已开启','GENESIS PACK':'创世卡包','SEALED · SEASON 01':'已封装 · 第 01 赛季','Battle':'开始战斗','Open':'开启','Select card':'选择卡牌','Select 3 cards.':'请选择 3 张卡牌。','LOCAL DEMO':'本地演示','BNB CHAIN · CRYPTO GENESIS':'BNB 链 · 加密创世纪',
+    'GENESIS':'创世','GENESIS VAULT':'创世宝库','FIRST SPARK':'初火','FRONTIER KIT':'前线补给','STAR FORGE':'星铸','SEASON 01':'第 01 赛季','ORIGINAL CARD SET':'原创卡牌','CRYPTO GENESIS':'加密创世纪','BAI · GENESIS':'BAI · 创世','BAI TCG · CRYPTO GENESIS':'BAI TCG · 加密创世纪','CARD 018 / 075':'卡牌 018 / 075','BITCOIN':'比特币','BITCOIN · FIRE ELEMENT':'比特币 · 火属性','NOVA FORGE':'新星铸造','ETHER':'以太币','ETHEREUM':'以太坊','BNB CHAIN':'BNB Chain','FIRE ELEMENT':'火属性','GENESIS SSS':'创世 SSS','THE FIRST SIGNAL':'初始信号','Rarity':'稀有度','Legendary':'传说','JUST NOW':'刚刚','Just now':'刚刚','Buy':'购买','Sell':'出售','＋ Sell':'＋ 出售','Remove ×':'移出队伍 ×','Opening…':'开包中…','Pack opened':'卡包已开启','GENESIS PACK':'创世卡包','SEALED · SEASON 01':'已封装 · 第 01 赛季','Battle':'开始战斗','Open':'开启','Select card':'选择卡牌','Select 3 cards.':'请选择 3 张卡牌。','LOCAL DEMO':'本地演示','BNB CHAIN · CRYPTO GENESIS':'BNB 链 · 加密创世纪',
     'Reset demo?':'确定重置本地演示吗？','Demo loaded.':'演示数据已载入。','Reset.':'已重置。','Purchased.':'购买成功。','Listed.':'已挂单。','Sold':'已出售','No cards to sell.':'暂无可出售的卡牌。','Check card and price.':'请检查卡牌和价格。','Select 3 identical cards.':'请选择 3 张相同卡牌。','SSS is the top tier.':'SSS 已是最高等级。','Choose up to three forge materials.':'最多选择 3 张锻造材料。','Batch sold out.':'本批次已售罄。','Pack opened':'已开包','Card forge':'卡牌锻造','PVE simulation':'PVE 模拟','Demo market':'演示交易市场','Demo listing':'演示挂单','Sealed pack':'未开启卡包','Demo collection':'演示卡册'
   }));
   for (const card of CARDS) {
@@ -244,7 +278,7 @@
     const trimmed = value.trim();
     if (ZH_TEXT.has(trimmed)) return value.replace(trimmed, ZH_TEXT.get(trimmed));
     let match = trimmed.match(/^Selected (\d+) \/ 3$/); if (match) return value.replace(trimmed, `已选 ${match[1]} / 3`);
-    match = trimmed.match(/^(\d+) \/ 60$/); if (match) return value.replace(trimmed, `${match[1]} / 60`);
+    match = trimmed.match(/^(\d+) \/ 75$/); if (match) return value.replace(trimmed, `${match[1]} / 75`);
     match = trimmed.match(/^(\d+) cards?$/); if (match) return value.replace(trimmed, `${match[1]} 张卡牌`);
     match = trimmed.match(/^BATCH S01 · (\d+) LEFT$/); if (match) return value.replace(trimmed, `批次 S01 · 剩余 ${match[1]}`);
     let result=trimmed;
@@ -298,7 +332,7 @@
   let marketSort = 'featured';
 
   function freshState() {
-    return { usdt:120, inventory:[], sealedPacks:[], packHistory:[], activity:[], market:MARKET_SEED.map(item => ({...item})), deck:[], marketVolume:1284.5, marketplaceFeePool:0, batchPools:createBatchPools() };
+    return { cardSetVersion:CARD_SET_VERSION, usdt:120, inventory:[], sealedPacks:[], packHistory:[], activity:[], market:MARKET_SEED.map(item => ({...item})), deck:[], marketVolume:1284.5, marketplaceFeePool:0, batchPools:createBatchPools() };
   }
   function loadState() {
     try {
@@ -306,14 +340,14 @@
       if (raw && typeof raw.usdt === 'number' && Array.isArray(raw.inventory) && Array.isArray(raw.market)) {
         const validPools = raw.batchPools && PACKS.every(pack=>Array.isArray(raw.batchPools[pack.id]));
         const batchPools = validPools ? raw.batchPools : createBatchPools();
-        if (validPools && !Object.values(batchPools).some(pool=>pool.some(asset=>Number(asset.code?.slice(3))>30))) {
+        if (validPools && raw.cardSetVersion !== CARD_SET_VERSION) {
           for (const pool of Object.values(batchPools)) for (const rarity of RARITIES) {
-            const additions = CARDS.filter(card=>Number(card.code.slice(3))>30 && card.rarity===rarity.id);
-            const slots = pool.filter(asset=>asset.rarity===rarity.id && Number(asset.code?.slice(3))<=30);
-            slots.slice(0,additions.length).forEach((asset,index)=>{ asset.code=additions[index].code; });
+            const templates = CARDS.filter(card=>card.rarity===rarity.id);
+            const slots = pool.filter(asset=>asset.rarity===rarity.id);
+            slots.forEach((asset,index)=>{ asset.code=templates[index % templates.length].code; });
           }
         }
-        return {...raw, sealedPacks:Array.isArray(raw.sealedPacks)?raw.sealedPacks:[], batchPools};
+        return {...raw, cardSetVersion:CARD_SET_VERSION, sealedPacks:Array.isArray(raw.sealedPacks)?raw.sealedPacks:[], batchPools};
       }
     } catch {}
     return freshState();
@@ -475,7 +509,7 @@
     let cards = CARDS.filter(card => catalogRarity === 'all' || card.rarity === catalogRarity);
     if (catalogQuery) cards = cards.filter(card => `${card.name} ${card.en} ${card.code} ${elementTitle(card.element)} ${factionTitle(card.faction)} ${cardTitle(card)} ${(CARD_COPY[card.code] || []).join(' ')} ${CARD_CRYPTO_MOTIF[card.code] || ''}`.toLowerCase().includes(catalogQuery.toLowerCase()));
     el('catalog-grid').innerHTML = cards.length ? cards.map(card => cardMarkup(card,{count:counts.get(card.code)})).join('') : '<div class="empty-state">No cards match this search.</div>';
-    const featured = ['GC-031','GC-032','GC-033','GC-037','GC-038','GC-040'].map(code => cardByCode.get(code));
+    const featured = ['GC-074','GC-075','GC-071','GC-072','GC-068','GC-065'].map(code => cardByCode.get(code));
     el('featured-cards').innerHTML = featured.map(card => cardMarkup(card,{count:counts.get(card.code)})).join('');
   }
   function renderShop() {
