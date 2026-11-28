@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const STORAGE_KEY = 'bai-tcg-v2-cyber-demo-v4';
+  const STORAGE_KEY = 'bai-tcg-v2-cyber-demo-v4'; // Copy refresh 2026-11-28
   const LANG_KEY = 'bai54-language';
   let language = 'zh';
   try { language = localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'zh'; } catch {}
