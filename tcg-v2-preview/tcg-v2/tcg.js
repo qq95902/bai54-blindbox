@@ -104,6 +104,70 @@
     'GC-049':'LTC','GC-050':'XRP','GC-051':'BNB','GC-052':'DOGE','GC-053':'SOL','GC-054':'LINK',
     'GC-055':'AVAX','GC-056':'DOT','GC-057':'BTC','GC-058':'ETH','GC-059':'LTC','GC-060':'MON'
   });
+  // Player-facing bilingual names and skill text. Keep the crypto motif in the
+  // title, and make the card's role/ability read naturally in both languages.
+  const CARD_COPY = Object.freeze({
+    'GC-001':['链上矿工','Onchain Miner','哈希勘探','搜寻矿脉时，有机会发现额外的锻造材料。','Hashrate Survey','May find extra forging material while scouting a vein.'],
+    'GC-002':['信标使者','Beacon Runner','区块快讯','提升队伍先手率，抢在对手前行动。','Block Beacon','Raises the squad’s chance to act first.'],
+    'GC-003':['燃气护卫','Gas Warden','燃气护盾','为队伍抵挡一次轻型攻击。','Gas Shield','Blocks one light attack against the squad.'],
+    'GC-004':['验证者修复师','Validator Mender','节点校准','每回合恢复少量队伍耐久。','Node Calibration','Restores a small amount of squad durability each turn.'],
+    'GC-005':['跨链拾荒者','Cross-chain Scavenger','桥接寻宝','探索废墟时，有机会带回额外素材。','Bridge Salvage','May recover extra material while exploring ruins.'],
+    'GC-006':['矿池点火员','Mining Pool Igniter','矿池增幅','提升火属性队友的攻击力。','Pool Boost','Raises the attack of allied Flame cards.'],
+    'GC-007':['共识测绘员','Consensus Cartographer','链路扫描','提前标记下一段航路上的危险目标。','Route Scan','Marks a dangerous target on the next route in advance.'],
+    'GC-008':['预言机标记者','Oracle Marker','价格预言','标记目标，使其受到的下一次攻击增强。','Oracle Mark','Marks a target to amplify the next hit it takes.'],
+    'GC-009':['流动性驯潮师','Liquidity Tidemancer','流动性护航','为水属性队友提供一次伤害减免。','Liquidity Guard','Grants allied Tide cards one instance of damage reduction.'],
+    'GC-010':['链上筑垒师','Onchain Bastion Engineer','节点防线','登场时提升全队防御。','Validator Bastion','Raises squad defense on deployment.'],
+    'GC-011':['闪电网络斥候','Lightning Scout','快速通道','有机会避开一次来袭攻击。','Fast Channel','May evade one incoming attack.'],
+    'GC-012':['质押导航官','Staking Navigator','质押增益','提升风属性队友的攻击力。','Staking Uplift','Raises the attack of allied Wind cards.'],
+    'GC-013':['深海共识者','Deep Consensus Rider','共识分担','将一次重击的伤害分摊给全队。','Shared Consensus','Splits one heavy hit across the squad.'],
+    'GC-014':['熔岩验证者','Magma Validator','区块反击','受到攻击后，对攻击者返还部分伤害。','Block Counter','Returns part of the damage to an attacker.'],
+    'GC-015':['星桥织造师','Starweaver','跨链协同','强化相邻队友的技能效果。','Cross-chain Synergy','Strengthens the abilities of adjacent allies.'],
+    'GC-016':['链上档案官','Onchain Archivist','状态复刻','复制一项已触发的队伍增益。','State Snapshot','Copies one squad boost that has already triggered.'],
+    'GC-017':['区块熵潮领航者','Mempool Navigator','连续打包','队伍首次攻击后追加一次连锁冲击。','Block Sequence','Adds a chain impact after the squad’s first attack.'],
+    'GC-018':['创世区块铸造师','Genesis Block Forger','创世共鸣','平衡全队能量，并强化元素协同。','Genesis Resonance','Balances squad energy and amplifies elemental synergy.'],
+    'GC-019':['铸币师','Mintkeeper','余烬护盾','首次攻击后获得一层护盾。','Ember Shield','Gains one shield after the first attack.'],
+    'GC-020':['链上预言者','Onchain Oracle','链上预警','揭示一项尚未公开的战场效果。','Onchain Forecast','Reveals one undisclosed battlefield effect.'],
+    'GC-021':['金链节点狮卫','Golden Chain Nodeguard','节点壁垒','为相邻队友提供护盾。','Node Barrier','Shields adjacent allies.'],
+    'GC-022':['双彗巡游者','Comet Runner','高速出块','有机会获得先手。','Rapid Finality','May gain the first move.'],
+    'GC-023':['银潮龙骑','Silver Tide Rider','账本回响','受到攻击时，恢复少量队伍耐久。','Ledger Reprise','Restores a small amount of squad durability when attacked.'],
+    'GC-024':['星图织造者','Starweaver','共识星图','提升光属性队友的防御。','Consensus Chart','Raises defense for allied Light cards.'],
+    'GC-025':['金尾星狐','Goldflare Fox','幸运回撤','闪避攻击后，反击一次。','Lucky Reversal','Counterattacks once after evading.'],
+    'GC-026':['链式裁决官','Chainkeeper','预言连击','连续命中时追加链式伤害。','Oracle Chain','Adds chained damage on consecutive hits.'],
+    'GC-027':['赤雪先锋','Frost Vanguard','雪崩清算','对受控目标造成额外伤害。','Avalanche Liquidation','Deals extra damage to a controlled target.'],
+    'GC-028':['平行链共鸣者','Parachain Resonator','平行充能','每回合为一名随机队友充能。','Parachain Charge','Charges a random ally each turn.'],
+    'GC-029':['棱镜解码师','Prism Decoder','状态重写','复制最近触发的一项队伍技能。','State Rewrite','Copies the most recently triggered squad ability.'],
+    'GC-030':['稳定锚卫','Stability Warden','锚定防护','抵消一次重击，并稳住全队阵形。','Peg Stability','Negates one heavy hit and steadies the squad.'],
+    'GC-031':['创世守护者','Genesis Warden','创世防线','为全队生成一次护盾，并提升首回合先手率。','Genesis Guard','Shields the squad once and raises its chance to act first.'],
+    'GC-032':['金链统御者','Chain Sovereign','验证者壁垒','抵消一次重击，并提升全队防御。','Validator Bastion','Negates one heavy hit and raises squad defense.'],
+    'GC-033':['合约构筑师','Contract Architect','合约增幅','强化全队技能，并恢复少量能量。','Contract Amplifier','Strengthens squad abilities and restores a little energy.'],
+    'GC-034':['神谕编织者','Oracle Weaver','预言复制','复制一项已触发的队伍技能。','Oracle Copy','Copies one squad ability that has triggered.'],
+    'GC-035':['彗星疾行者','Comet Sprinter','极速连击','连续攻击时追加一次连击。','Quickstrike Combo','Adds a combo strike during consecutive attacks.'],
+    'GC-036':['账本守望者','Ledger Sentinel','账本共担','将一次重击分摊给全队。','Ledger Share','Shares one heavy hit across the squad.'],
+    'GC-037':['纪元守护者','Epoch Warden','纪元护盾','为光属性队友提供护盾。','Epoch Shield','Shields allied Light cards.'],
+    'GC-038':['减半骑士','Halving Knight','减半增幅','首次攻击后提升全队攻击力。','Halving Surge','Raises squad attack after the first strike.'],
+    'GC-039':['燃料信使','Gas Courier','燃料传递','为下一位行动的队友补充能量。','Gas Transfer','Restores energy to the next ally to act.'],
+    'GC-040':['银光快递员','Silver Courier','闪电速递','有机会先手行动并闪避一次攻击。','Lightning Dispatch','May act first and evade one attack.'],
+    'GC-041':['验证者队长','Validator Captain','节点阵列','提升全队防御并稳固阵形。','Validator Formation','Raises squad defense and steadies its formation.'],
+    'GC-042':['月面信使','Lunar Courier','弹性回击','闪避后快速反击一次。','Bounce Back','Quickly counterattacks after evading.'],
+    'GC-043':['极速竞速者','Velocity Racer','高速确认','命中后提升下一次攻击。','Fast Confirmation','Raises the next attack after a hit.'],
+    'GC-044':['数据引路人','Data Pathfinder','预言定位','揭示并削弱一个危险目标。','Oracle Lock','Reveals and weakens a dangerous target.'],
+    'GC-045':['雪崩先锋','Avalanche Vanguard','雪崩突进','对受控目标造成额外伤害。','Avalanche Charge','Deals extra damage to a controlled target.'],
+    'GC-046':['中继织网者','Relay Weaver','中继协同','强化相邻卡牌的元素效果。','Relay Synergy','Strengthens elemental effects of adjacent cards.'],
+    'GC-047':['并行领航员','Parallel Pilot','并行执行','队伍首次攻击后追加链式伤害。','Parallel Execution','Adds chained damage after the squad’s first attack.'],
+    'GC-048':['权益守卫','Stake Warden','权益护盾','抵挡一次轻型攻击。','Stake Shield','Blocks one light attack.'],
+    'GC-049':['轻链矿工','Litecoin Miner','轻链寻矿','探索时额外获得锻造材料。','Litecoin Prospecting','Finds extra forging material during exploration.'],
+    'GC-050':['跨账本使者','Cross-ledger Envoy','跨账本共担','替全队分摊一次伤害。','Cross-ledger Share','Shares one instance of damage across the squad.'],
+    'GC-051':['燃气守卫','Gas Guardian','燃气护甲','登场时小幅提升全队防御。','Gas Armor','Slightly raises squad defense on deployment.'],
+    'GC-052':['笑面旅者','Grinning Wayfarer','趣味反击','闪避后有机会反击。','Lucky Riposte','May counterattack after evading.'],
+    'GC-053':['日蚀滑行者','Eclipse Rider','快速闪避','提高一次闪避攻击的几率。','Swift Evade','Raises the chance to evade one attack.'],
+    'GC-054':['节点驯兽师','Node Tamer','节点协同','为一名随机队友恢复少量耐久。','Node Harmony','Restores a little durability to a random ally.'],
+    'GC-055':['火山巡守者','Volcanic Scout','火山清算','对已标记目标造成额外伤害。','Volcanic Liquidation','Deals extra damage to a marked target.'],
+    'GC-056':['星际摆渡员','Starferry Pilot','平行链护航','提升光属性队友的防御。','Parachain Guard','Raises defense for allied Light cards.'],
+    'GC-057':['密钥收藏家','Keykeeper','密钥保险库','首次受到攻击时获得护盾。','Key Vault','Gains a shield when first attacked.'],
+    'GC-058':['区块学徒','Block Apprentice','区块索引','揭示一项尚未公开的战场效果。','Block Index','Reveals one undisclosed battlefield effect.'],
+    'GC-059':['巡游者','Wayfarer','轻链疾行','有机会抢先行动。','Litecoin Sprint','May gain the first move.'],
+    'GC-060':['并行信标','Parallel Beacon','并行增幅','提升队伍下一次技能效果。','Parallel Boost','Boosts the squad’s next ability.']
+  });
   const PACKS = [
     { id:'starter', name:'First Spark', nameZh:'初火', en:'FIRST SPARK', price:PACK_PRICE_USDT.starter, count:1, batchSize:800, rarityCounts:{N:560,R:192,SR:44,SSR:2,UR:2}, color:'#63cdb7' },
     { id:'bronze', name:'Frontier Kit', nameZh:'前线补给', en:'FRONTIER KIT', price:PACK_PRICE_USDT.bronze, count:3, batchSize:600, rarityCounts:{N:360,R:150,SR:72,SSR:15,UR:3}, color:'#cd8c5a' },
@@ -145,13 +209,17 @@
     'GC-051':['Gas Armor','Slightly raises squad defense on deployment.'],'GC-052':['Joyful Riposte','May counterattack after evading.'],'GC-053':['Eclipse Step','Improves the chance to evade one attack.'],'GC-054':['Node Harmony','Slightly restores a random ally’s durability.'],'GC-055':['Volcanic Impact','Deals extra damage to a marked target.'],'GC-056':['Starferry Guard','Raises defense for allied Light cards.'],'GC-057':['Keystone Cache','Gains a shield when first attacked.'],'GC-058':['Block Record','Reveals one unknown battlefield effect.'],'GC-059':['Lite Sprint','May claim the first move.'],'GC-060':['Parallel Signal','Boosts the squad’s next ability.']
   });
   const cardTitle = card => {
-    const nickname = String(card?.en || card?.code || 'Genesis Card').toLowerCase().replace(/\b[a-z]/g, letter => letter.toUpperCase());
+    const copy = CARD_COPY[card?.code];
     const motif = CRYPTO_MOTIFS.find(item => item.ticker === CARD_CRYPTO_MOTIF[card?.code]);
-    return motif ? `${language === 'zh' ? motif.nameZh : motif.name} · ${language === 'zh' ? card.name : nickname}` : nickname;
+    const nickname = language === 'zh' ? (copy?.[0] || card?.name || '创世卡牌') : (copy?.[1] || card?.en || card?.code || 'Genesis Card');
+    return motif ? `${language === 'zh' ? motif.nameZh : motif.name} · ${nickname}` : nickname;
   };
   const elementTitle = value => language === 'zh' ? (value || '未知') : (ELEMENT_EN[value] || value || 'Unknown');
   const factionTitle = value => language === 'zh' ? (value || '创世') : (FACTION_EN[value] || value || 'Genesis');
-  const skillCopy = card => language === 'zh' ? (card?.skill?.split('：') || ['卡牌技能','原创技能']) : (SKILL_EN[card?.code] || ['Genesis Ability','An original ability from the Crypto Genesis set.']);
+  const skillCopy = card => {
+    const copy = CARD_COPY[card?.code];
+    return copy ? (language === 'zh' ? [copy[2],copy[3]] : [copy[4],copy[5]]) : (language === 'zh' ? (card?.skill?.split('：') || ['卡牌技能','原创技能']) : (SKILL_EN[card?.code] || ['Genesis Ability','An original ability from the Crypto Genesis set.']));
+  };
   const rarityName = rarity => language === 'zh' ? (rarity?.labelZh || rarity?.label || '') : (rarity?.label || '');
   const packName = pack => language === 'zh' ? (pack?.nameZh || pack?.name || '') : String(pack?.en || pack?.name || '').replace(/\b[a-z]/g,letter=>letter.toUpperCase());
   const ZH_TEXT = new Map(Object.entries({
@@ -405,7 +473,7 @@
     el('completion-percent').textContent = `${pct}%`;
     el('completion-ring').style.setProperty('--progress', `${pct}%`);
     let cards = CARDS.filter(card => catalogRarity === 'all' || card.rarity === catalogRarity);
-    if (catalogQuery) cards = cards.filter(card => `${card.name} ${card.en} ${card.code} ${elementTitle(card.element)} ${factionTitle(card.faction)} ${cardTitle(card)} ${CARD_CRYPTO_MOTIF[card.code] || ''}`.toLowerCase().includes(catalogQuery.toLowerCase()));
+    if (catalogQuery) cards = cards.filter(card => `${card.name} ${card.en} ${card.code} ${elementTitle(card.element)} ${factionTitle(card.faction)} ${cardTitle(card)} ${(CARD_COPY[card.code] || []).join(' ')} ${CARD_CRYPTO_MOTIF[card.code] || ''}`.toLowerCase().includes(catalogQuery.toLowerCase()));
     el('catalog-grid').innerHTML = cards.length ? cards.map(card => cardMarkup(card,{count:counts.get(card.code)})).join('') : '<div class="empty-state">No cards match this search.</div>';
     const featured = ['GC-031','GC-032','GC-033','GC-037','GC-038','GC-040'].map(code => cardByCode.get(code));
     el('featured-cards').innerHTML = featured.map(card => cardMarkup(card,{count:counts.get(card.code)})).join('');
